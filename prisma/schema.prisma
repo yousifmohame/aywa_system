@@ -1,0 +1,135 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. تعريف الأدوار (Roles)
+enum Role {
+  MANAGER
+  SUPERVISOR
+  EMPLOYEE
+}
+
+// 2. تعريف الأقسام
+model Department {
+  id          String   @id @default(uuid())
+  name        String   @unique  // اسم القسم (خدمة العملاء، التجهيز...)
+  description String?
+  createdAt   DateTime @default(now())
+
+  // العلاقات
+  employees   User[]
+  evaluationSettings EvaluationSetting?
+}
+
+// 3. جدول الموظفين (User)
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  password     String         // سيتم تشفيرها لاحقاً
+  fullName     String
+  role         Role           @default(EMPLOYEE)
+  departmentId String?      // أصبح معرفاً وليس اسماً
+  department   Department?  @relation(fields: [departmentId], references: [id])
+  avatarUrl    String?
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  isOvertimeEnabled Boolean @default(false)
+
+  // العلاقات
+  tasksAssigned Task[]         @relation("AssignedTo")
+  performances  DailyPerformance[]
+  notes         Note[]
+  badges    UserBadge[]
+}
+
+// 4. جدول الأداء اليومي (يجمع بيانات القسمين)
+model DailyPerformance {
+  id        String   @id @default(uuid())
+  date      DateTime @default(now())
+  
+  // علاقة مع الموظف
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  // بيانات عامة
+  score     Int      // النتيجة النهائية لليوم (0-100)
+  rating    String   // Excellent, Good, etc.
+
+  // بيانات خاصة بخدمة العملاء (يمكن أن تكون null إذا كان الموظف تجهيز طلبات)
+  callsCount    Int?    @default(0)
+  solvedTickets Int?    @default(0)
+  pendingTickets Int?   @default(0)
+  avgResponseTime Int?  // بالثواني
+  workHours      Float?   @default(0) // ساعات العمل العادية
+  overtimeHours  Float?   @default(0)
+
+  speedScore      Int?    @default(0)
+  qualityScore    Int?    @default(0)
+  disciplineScore Int?    @default(0)
+
+  checkIn     DateTime?   // وقت الدخول
+  checkOut    DateTime?   // وقت الخروج
+
+  // بيانات خاصة بقسم تجهيز الطلبات
+  ordersPrepared  Int?  @default(0)
+  accuracyRate    Int?  @default(100) // نسبة مئوية
+  returnedOrders  Int?  @default(0)   // أخطاء الموظف
+  avgPrepTime     Int?  // بالدقائق
+
+  @@unique([userId, date]) // منع تكرار تقييم لنفس الموظف في نفس اليوم
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  badgeType String   // نوع الوسام (STAR, TROPHY, FAST, etc.)
+  note      String?  // ملاحظة من المشرف (سبب الإهداء)
+  createdAt DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// 5. جدول المهام (Tasks)
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  dueDate     DateTime?
+  
+  assignedToId String
+  assignedTo   User   @relation("AssignedTo", fields: [assignedToId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+// 6. جدول إعدادات التقييم (Evaluation Settings)
+// لتخزين النسب التي يغيرها المدير (مثلاً السرعة 30%)
+model EvaluationSetting {
+  id             String         @id @default(uuid())
+  departmentId   String     @unique
+  department     Department @relation(fields: [departmentId], references: [id])
+  
+  // أوزان التقييم (مجموعها يجب أن يكون 100)
+  speedWeight    Int            @default(30)
+  accuracyWeight Int            @default(30)
+  qualityWeight  Int            @default(20)
+  disciplineWeight Int          @default(20)
+}
+
+// 7. ملاحظات المشرفين
+model Note {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
