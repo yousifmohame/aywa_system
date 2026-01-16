@@ -11,7 +11,6 @@ export default function DepartmentsView({ departments }: { departments: any[] })
 
   const activeDept = departments.find(d => d.id === activeTabId)
   
-  // تحديد نوع القسم الحالي لتغيير العناوين والوحدات
   const isService = activeDept?.name.includes('عملاء') || activeDept?.name.includes('اتصال')
   const isFulfillment = activeDept?.name.includes('تجهيز') || activeDept?.name.includes('تنفيذ')
 
@@ -25,177 +24,162 @@ export default function DepartmentsView({ departments }: { departments: any[] })
   }
 
   return (
-    <div className="space-y-6 font-[Tajawal]" dir="rtl">
+    <div className="space-y-6 font-[Tajawal] overflow-x-hidden" dir="rtl">
       
-      {/* Tabs Switcher */}
-      <div className="bg-white p-1.5 rounded-xl border border-gray-100 inline-flex shadow-sm flex-wrap gap-1">
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2 bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
         {departments.map((dept) => (
           <button
             key={dept.id}
             onClick={() => setActiveTabId(dept.id)}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTabId === dept.id 
-                ? 'bg-[#0f172a] text-white shadow-md' 
+                ? 'bg-[#0f172a] text-white' 
                 : 'text-gray-500 hover:bg-gray-50'
             }`}
           >
-            {dept.name.includes('عملاء') ? <Headset size={16} /> : <Package size={16} />}
+            {dept.name.includes('عملاء') ? <Headset size={14} /> : <Package size={14} />}
             {dept.name}
           </button>
         ))}
       </div>
 
-      {/* المحتوى المتغير */}
-      <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-        
-        {activeDept && (
-          <div className="space-y-6">
-            
-            {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              
-              {/* البطاقة الأولى: متغيرة حسب نوع القسم */}
-              {isService ? (
-                 // --- عرض سرعة الاستجابة لخدمة العملاء ---
-                <StatCard 
-                  title="متوسط سرعة الاستجابة" 
-                  // نستخدم avgTime الذي حسبته في السيرفر
-                  value={`${activeDept.stats.avgTime} ثانية`} 
-                  icon={Timer} 
-                  color="text-blue-600" bg="bg-blue-50" 
-                />
-              ) : (
-                // --- عرض عدد الطلبات للتجهيز ---
-                <StatCard 
-                  title="الطلبات المجهزة" 
-                  value={activeDept.stats.orders} 
-                  icon={Package} 
-                  color="text-orange-600" bg="bg-orange-50" 
-                />
-              )}
-              
-              {/* البطاقة الثانية: الحجم الكلي للعمل */}
-              <StatCard 
-                title={isService ? "إجمالي المكالمات" : "حجم العمل"} 
-                // نستخدم calls للخدمة أو orders للتجهيز
-                value={isService ? activeDept.stats.calls : activeDept.stats.orders} 
-                icon={isService ? PhoneIncoming : BarChart3} 
-                color="text-purple-600" bg="bg-purple-50" 
-              />
-              
-              {/* البطاقة الثالثة: الجودة والدقة */}
-              <StatCard 
-                title={isService ? "معدل جودة الردود" : "دقة التجهيز"} 
-                // للخدمة نستخدم الأداء العام، للتجهيز نستخدم الدقة
-                value={`${isService ? activeDept.stats.avgPerformance : activeDept.stats.accuracy}%`} 
-                icon={Award} 
-                color="text-green-600" bg="bg-green-50" 
-              />
-              
-              {/* البطاقة الرابعة: المشاكل */}
-              <StatCard 
-                title={isService ? "تذاكر معلقة" : "طلبات مرتجعة"} 
-                value={isService ? activeDept.stats.pending : activeDept.stats.returns} 
-                icon={AlertTriangle} 
-                color="text-red-600" bg="bg-red-50" 
-              />
-            </div>
+      {activeDept && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
-            {/* Ranking Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                  <Award size={18} className="text-yellow-500" />
-                  أفضل الموظفين أداءً ({activeDept.name})
-                </h3>
-                <span className="text-[10px] bg-white border px-2 py-1 rounded text-gray-500">
-                  مرتب حسب: {isService ? 'تقييم الجودة' : 'عدد الطلبات'}
-                </span>
-              </div>
-              <table className="w-full text-right">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-xs text-gray-500 font-bold">الترتيب</th>
-                    <th className="px-6 py-3 text-xs text-gray-500 font-bold">الموظف</th>
-                    <th className="px-6 py-3 text-xs text-gray-500 font-bold">
-                      {isService ? 'متوسط سرعة الرد' : 'الطلبات المنجزة'}
-                    </th>
-                    <th className="px-6 py-3 text-xs text-gray-500 font-bold">تقييم الجودة</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {activeDept.topEmployees.map((record: any, index: number) => (
-                    <tr key={record.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                          index === 0 ? 'bg-yellow-100 text-yellow-700' : 
-                          index === 1 ? 'bg-gray-200 text-gray-700' :
-                          index === 2 ? 'bg-orange-100 text-orange-800' : 'bg-white border text-gray-500'
-                        }`}>
-                          {index + 1}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-xs font-bold text-blue-600">
-                            {record.user.fullName.charAt(0)}
-                          </div>
-                          <div>
-                            <span className="block text-sm font-bold text-gray-800">{record.user.fullName}</span>
-                            <span className="text-[10px] text-gray-400">{record.user.email}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-bold text-gray-700">
-                          {isService 
-                            ? `${record.avgResponseTime || 0} ثانية` 
-                            : `${record.ordersPrepared || 0} طلب`}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                         {/* شريط تقدم بسيط للأداء */}
-                         <div className="flex items-center gap-2">
-                           <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                             <div 
-                               className={`h-full rounded-full ${record.score >= 90 ? 'bg-green-500' : record.score >= 75 ? 'bg-blue-500' : 'bg-orange-500'}`} 
-                               style={{ width: `${record.score}%` }}
-                             ></div>
-                           </div>
-                           <span className={`text-xs font-bold ${record.score >= 90 ? 'text-green-600' : 'text-gray-600'}`}>
-                             {record.score}%
-                           </span>
-                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {activeDept.topEmployees.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="text-center py-8 text-gray-400 text-sm">
-                        لا توجد بيانات أداء مسجلة لهذا القسم اليوم.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            
+            {isService ? (
+              <StatCard 
+                title="متوسط سرعة الاستجابة" 
+                value={`${activeDept.stats.avgTime} ثانية`} 
+                icon={Timer} 
+                color="text-blue-600" bg="bg-blue-50" 
+              />
+            ) : (
+              <StatCard 
+                title="الطلبات المجهزة" 
+                value={activeDept.stats.orders} 
+                icon={Package} 
+                color="text-orange-600" bg="bg-orange-50" 
+              />
+            )}
+            
+            <StatCard 
+              title={isService ? "إجمالي المكالمات" : "حجم العمل"} 
+              value={isService ? activeDept.stats.calls : activeDept.stats.orders} 
+              icon={isService ? PhoneIncoming : BarChart3} 
+              color="text-purple-600" bg="bg-purple-50" 
+            />
+            
+            <StatCard 
+              title={isService ? "تقييم الجودة" : "دقة التجهيز"} 
+              value={`${isService ? activeDept.stats.avgPerformance : activeDept.stats.accuracy}%`} 
+              icon={Award} 
+              color="text-green-600" bg="bg-green-50" 
+            />
+            
+            <StatCard 
+              title={isService ? "تذاكر معلقة" : "طلبات مرتجعة"} 
+              value={isService ? activeDept.stats.pending : activeDept.stats.returns} 
+              icon={AlertTriangle} 
+              color="text-red-600" bg="bg-red-50" 
+            />
+          </div>
+
+          {/* Top Employees Cards بدل جدول */}
+          <div className="space-y-3">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
+              <Award size={16} className="text-yellow-500" />
+              أفضل الموظفين أداءً — {activeDept.name}
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {activeDept.topEmployees.map((record: any, index: number) => (
+                <div
+                  key={record.id}
+                  className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-3"
+                >
+                  
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                        {record.user.fullName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-800">
+                          {record.user.fullName}
+                        </p>
+                        <p className="text-[10px] text-gray-400">
+                          {record.user.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Rank Badge */}
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
+                      index === 0 ? 'bg-yellow-100 text-yellow-700' : 
+                      index === 1 ? 'bg-gray-200 text-gray-700' :
+                      index === 2 ? 'bg-orange-100 text-orange-700' :
+                      'bg-gray-50 text-gray-500'
+                    }`}>
+                      {index + 1}
+                    </div>
+                  </div>
+
+                  {/* Performance */}
+                  <div className="text-xs text-gray-600">
+                    {isService 
+                      ? `متوسط سرعة الرد: ${record.avgResponseTime || 0} ثانية`
+                      : `الطلبات المنجزة: ${record.ordersPrepared || 0}`}
+                  </div>
+
+                  {/* Score Progress */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] text-gray-500">
+                      <span>تقييم الجودة</span>
+                      <span>{record.score}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${
+                          record.score >= 90 ? 'bg-green-500' :
+                          record.score >= 75 ? 'bg-blue-500' :
+                          'bg-orange-500'
+                        }`}
+                        style={{ width: `${record.score}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {activeDept.topEmployees.length === 0 && (
+                <div className="col-span-full text-center py-8 text-gray-400 text-sm">
+                  لا توجد بيانات أداء مسجلة لهذا القسم اليوم.
+                </div>
+              )}
             </div>
           </div>
-        )}
 
-      </div>
+        </div>
+      )}
     </div>
   )
 }
 
+/* KPI Card */
 function StatCard({ title, value, icon: Icon, color, bg }: any) {
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow group">
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
       <div>
-        <p className="text-xs text-gray-500 font-bold mb-1 group-hover:text-blue-600 transition-colors">{title}</p>
-        <h3 className="text-2xl font-bold text-gray-800 font-[Tajawal]">{value}</h3>
+        <p className="text-xs text-gray-500 font-bold mb-1">{title}</p>
+        <h3 className="text-xl font-bold text-gray-800">{value}</h3>
       </div>
-      <div className={`p-3 rounded-xl transition-all duration-300 ${bg} ${color} group-hover:scale-110`}>
-        <Icon size={24} strokeWidth={2.5} />
+      <div className={`p-3 rounded-xl ${bg} ${color}`}>
+        <Icon size={22} strokeWidth={2.3} />
       </div>
     </div>
   )
