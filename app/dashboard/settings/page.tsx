@@ -21,7 +21,14 @@ export default function SettingsPage() {
       color: 'bg-purple-100 text-purple-600',
       border: 'border-purple-200'
     },
-    
+    {
+      title: 'ساعات العمل',
+      description: 'ضبط أوزان التقييم (السرعة، الدقة، الانضباط) لكل قسم على حدة.',
+      href: '/dashboard/settings/worktime',
+      icon: Sliders,
+      color: 'bg-purple-100 text-purple-400',
+      border: 'border-purple-200'
+    },
   ]
 
   return (

@@ -49,6 +49,13 @@ model User {
   badges    UserBadge[]
 }
 
+model SystemSettings {
+  id              String @id @default("settings") // صف واحد فقط
+  workStartTime   String @default("07:00") // وقت الحضور الرسمي
+  workEndTime     String @default("17:00") // وقت الانصراف الرسمي
+  lateThreshold   Int    @default(15)      // فترة سماح بالدقائق
+}
+
 // 4. جدول الأداء اليومي (يجمع بيانات القسمين)
 model DailyPerformance {
   id        String   @id @default(uuid())

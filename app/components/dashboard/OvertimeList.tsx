@@ -4,16 +4,22 @@ import { toggleOvertimeAction } from '@/app/actions/manager'
 import { Zap, AlertCircle, Clock } from 'lucide-react'
 import { useTransition } from 'react'
 
-// تحديث النوع ليشمل الحقل الجديد
 type Employee = {
   id: string
   fullName: string
   department: string | null
   isOvertimeEnabled: boolean
-  monthlyOvertime: number // <--- الجديد
+  monthlyOvertime: number
 }
 
-export default function OvertimeList({ employees }: { employees: Employee[] }) {
+// 1. إضافة shiftHours للخصائص المتوقعة
+export default function OvertimeList({ 
+  employees, 
+  shiftHours = 8 // قيمة افتراضية في حال لم تمرر
+}: { 
+  employees: Employee[], 
+  shiftHours: number 
+}) {
   const [isPending, startTransition] = useTransition()
 
   const handleToggle = (id: string, currentStatus: boolean) => {
@@ -50,7 +56,6 @@ export default function OvertimeList({ employees }: { employees: Employee[] }) {
                 </div>
                 <div>
                   <h4 className="font-bold text-white text-[10px]">{emp.fullName}</h4>
-                  {/* عرض ساعات الأوفر تايم هنا */}
                   <div className="flex items-center gap-1 text-[9px] text-yellow-300">
                     <Clock size={10} />
                     <span>{emp.monthlyOvertime} ساعة إضافية</span>
@@ -76,8 +81,9 @@ export default function OvertimeList({ employees }: { employees: Employee[] }) {
 
       <div className="mt-3 bg-white/10 backdrop-blur-sm p-2 rounded-lg border border-white/20 flex items-start gap-2">
         <AlertCircle size={14} className="text-yellow-300 flex-shrink-0" />
+        {/* 2. استخدام المتغير shiftHours لعرض النص ديناميكياً */}
         <p className="text-[9px] text-purple-100 leading-tight">
-          يتم احتساب الساعات تلقائياً عند تجاوز 8 ساعات عمل للموظفين المفعلين فقط.
+          يتم احتساب الساعات تلقائياً عند تجاوز ساعات الدوام الرسمي ({shiftHours} ساعات) للموظفين المفعلين.
         </p>
       </div>
     </div>

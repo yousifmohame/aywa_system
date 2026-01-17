@@ -1,30 +1,27 @@
 import { prisma } from '@/app/lib/prisma'
 import { notFound } from 'next/navigation'
 import EmployeeProfileChart from '@/app/components/supervisor/EmployeeProfileChart'
-import { Clock, Trophy, Target, Star, TrendingUp, Award, ArrowRight } from 'lucide-react'
-import AttendanceCard from '@/app/components/supervisor/AttendanceCard'
+import { Clock, Trophy, Target, Star, TrendingUp, Award, ArrowRight, Calendar, Zap } from 'lucide-react'
 import BadgeGifter from '@/app/components/supervisor/BadgeGifter'
 import Link from 'next/link'
 
-// دالة تنسيق التاريخ والوقت
+// Helper function to format date
 const getDayName = (date: Date) => new Intl.DateTimeFormat('ar-EG', { weekday: 'long' }).format(date)
 
-// 1. تعريف النوع الصحيح لـ params كـ Promise (متطلب Next.js 15)
 type Props = {
   params: Promise<{ id: string }>
 }
 
 export default async function EmployeeProfilePage(props: Props) {
-  // 2. فك الـ Promise
   const params = await props.params
   const employeeId = params.id
   
-  // 3. جلب بيانات الموظف الأساسية + عدد المهام المنجزة
+  // 1. Fetch employee data + completed tasks count
   const employee = await prisma.user.findUnique({
     where: { id: employeeId },
     include: { 
       department: true,
-      badges: { orderBy: { createdAt: 'desc' } }, // جلب الأوسمة
+      badges: { orderBy: { createdAt: 'desc' } },
       _count: { 
         select: { 
           tasksAssigned: { where: { status: 'COMPLETED' } } 
@@ -35,7 +32,7 @@ export default async function EmployeeProfilePage(props: Props) {
 
   if (!employee) return notFound()
 
-  // 4. إعداد التواريخ
+  // 2. Setup dates
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   
@@ -45,18 +42,18 @@ export default async function EmployeeProfilePage(props: Props) {
 
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
-  // 5. جلب بيانات الأداء (للرسم البياني والترتيب)
-  const [performances, todayPerf, departmentStats, totalAttendanceDays] = await Promise.all([
-    // أداء آخر 7 أيام
+  // 3. Fetch performance data
+  const [performances, todayPerf, departmentStats, monthlyStats] = await Promise.all([
+    // Last 7 days performance
     prisma.dailyPerformance.findMany({
       where: { userId: employeeId, date: { gte: sevenDaysAgo } },
       orderBy: { date: 'asc' }
     }),
-    // أداء اليوم (للحضور والنتيجة الحالية)
+    // Today's performance
     prisma.dailyPerformance.findFirst({
       where: { userId: employeeId, date: { gte: today } }
     }),
-    // إحصائيات القسم لحساب الترتيب
+    // Department stats for ranking
     prisma.dailyPerformance.groupBy({
       by: ['userId'],
       where: { 
@@ -65,18 +62,21 @@ export default async function EmployeeProfilePage(props: Props) {
       },
       _avg: { score: true }
     }),
-    // إجمالي أيام الحضور
-    prisma.dailyPerformance.count({ where: { userId: employeeId } })
+    // Monthly stats (Attendance count, Overtime sum)
+    prisma.dailyPerformance.aggregate({
+        where: { userId: employeeId, date: { gte: startOfMonth } },
+        _count: { id: true },
+        _sum: { overtimeHours: true, workHours: true }
+    })
   ])
 
-  // 6. معالجة البيانات
+  // 4. Process Data
   
-  // أ) تجهيز بيانات الرسم البياني (ملء الأيام المفقودة بأصفار)
+  // A) Chart Data
   const chartData = []
   for (let i = 0; i < 7; i++) {
     const d = new Date(sevenDaysAgo)
     d.setDate(d.getDate() + i)
-    // البحث عن تقييم يطابق هذا اليوم
     const perf = performances.find(p => new Date(p.date).toDateString() === d.toDateString())
     
     chartData.push({
@@ -85,37 +85,42 @@ export default async function EmployeeProfilePage(props: Props) {
     })
   }
 
-  // ب) حساب الترتيب (Rank)
+  // B) Calculate Rank
   const sortedRanks = departmentStats.sort((a, b) => (b._avg.score || 0) - (a._avg.score || 0))
   const myRankIndex = sortedRanks.findIndex(r => r.userId === employeeId)
   const rank = myRankIndex !== -1 ? myRankIndex + 1 : '-'
 
-  // ج) وقت الحضور
-  // ملاحظة: بما أننا نستخدم date picker، الوقت غالباً سيكون 12:00 AM إلا إذا تم تعديله.
-  const attendanceTime = todayPerf 
-    ? new Date(todayPerf.date).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+  // C) Format Times for Display
+  const checkInTime = todayPerf?.checkIn 
+    ? new Date(todayPerf.checkIn).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+    : '--:--'
+    
+  const checkOutTime = todayPerf?.checkOut 
+    ? new Date(todayPerf.checkOut).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
     : '--:--'
 
-  // د) عدد المهام المنجزة (من قاعدة البيانات)
-  const completedTasksCount = employee._count.tasksAssigned
+  const todayOvertime = todayPerf?.overtimeHours || 0
+  const monthlyOvertime = monthlyStats._sum.overtimeHours || 0
+  const monthlyWorkHours = monthlyStats._sum.workHours || 0
+  const attendanceDays = monthlyStats._count.id || 0
 
   return (
     <div className="max-w-md mx-auto h-full flex flex-col font-[Tajawal]" dir="rtl">
       
-      {/* زر العودة */}
+      {/* Back Button */}
       <div className="flex items-center gap-2 mb-4">
         <Link href="/dashboard/supervisor" className="p-2 bg-white rounded-full text-gray-500 hover:text-blue-600 shadow-sm transition-colors">
           <ArrowRight size={18} />
         </Link>
         <div>
           <h1 className="text-base font-bold text-gray-900">الملف الشخصي</h1>
-          <p className="text-[10px] text-gray-500">تفاصيل أداء الموظف</p>
+          <p className="text-[10px] text-gray-500">متابعة سجلات الموظف</p>
         </div>
       </div>
 
       <div className="space-y-3 overflow-y-auto pb-4 scrollbar-hide">
         
-        {/* 1. بطاقة المعلومات الرئيسية */}
+        {/* 1. Main Info Card */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-4 rounded-xl text-white shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
           
@@ -145,31 +150,70 @@ export default async function EmployeeProfilePage(props: Props) {
           </div>
         </div>
 
-        {/* 2. قسم الحضور */}
-        <AttendanceCard performance={todayPerf} employeeId={employeeId} />
+        {/* 2. Today's Attendance & Overtime (Read-Only) */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex justify-between items-center mb-3">
+                <h3 className="text-xs font-bold text-gray-900 flex items-center gap-2">
+                    <Clock size={16} className="text-blue-600" />
+                    سجل دوام اليوم
+                </h3>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full ${todayPerf?.checkIn && !todayPerf?.checkOut ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {todayPerf?.checkIn && !todayPerf?.checkOut ? 'متواجد الآن' : 'غير متواجد'}
+                </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="bg-gray-50 p-2 rounded-lg text-center">
+                    <span className="block text-[10px] text-gray-500 mb-1">وقت الحضور</span>
+                    <span className="font-bold text-gray-800 text-sm">{checkInTime}</span>
+                </div>
+                <div className="bg-gray-50 p-2 rounded-lg text-center">
+                    <span className="block text-[10px] text-gray-500 mb-1">وقت الانصراف</span>
+                    <span className="font-bold text-gray-800 text-sm">{checkOutTime}</span>
+                </div>
+            </div>
 
-        {/* 3. الرسم البياني */}
+            <div className="bg-yellow-50 p-3 rounded-lg flex justify-between items-center border border-yellow-100">
+                <div className="flex items-center gap-2">
+                    <Zap size={16} className="text-yellow-600" />
+                    <span className="text-xs font-bold text-yellow-800">أوفر تايم اليوم</span>
+                </div>
+                <span className="text-sm font-bold text-yellow-700">
+                    {todayOvertime > 0 ? `+${todayOvertime} ساعة` : '---'}
+                </span>
+            </div>
+        </div>
+
+        {/* 3. Monthly Statistics Summary */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+             <h3 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Calendar size={16} className="text-purple-600" />
+                ملخص الشهر الحالي
+            </h3>
+            <div className="grid grid-cols-3 gap-2">
+                 <div className="text-center p-2 bg-purple-50 rounded-lg">
+                    <span className="block font-bold text-purple-700 text-sm">{attendanceDays}</span>
+                    <span className="text-[9px] text-purple-400">أيام حضور</span>
+                 </div>
+                 <div className="text-center p-2 bg-blue-50 rounded-lg">
+                    <span className="block font-bold text-blue-700 text-sm">{monthlyWorkHours.toFixed(1)}</span>
+                    <span className="text-[9px] text-blue-400">ساعات عمل</span>
+                 </div>
+                 <div className="text-center p-2 bg-orange-50 rounded-lg">
+                    <span className="block font-bold text-orange-700 text-sm">{monthlyOvertime.toFixed(1)}</span>
+                    <span className="text-[9px] text-orange-400">ساعات إضافية</span>
+                 </div>
+            </div>
+        </div>
+
+        {/* 4. Weekly Chart */}
         <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
           <h3 className="text-xs font-bold text-gray-900 mb-2">الأداء الأسبوعي</h3>
           <EmployeeProfileChart data={chartData} />
         </div>
 
-        {/* 4. الإنجازات والوسوم */}
+        {/* 5. Badges */}
         <BadgeGifter employeeId={employeeId} existingBadges={employee.badges} />
-
-        {/* 5. إحصائيات سريعة */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-xl text-white shadow-md">
-            <TrendingUp size={14} className="mb-1 opacity-80" />
-            <div className="text-lg font-bold">{completedTasksCount}</div>
-            <div className="text-[9px] opacity-90">مهام مكتملة</div>
-          </div>
-          <div className="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-xl text-white shadow-md">
-            <Award size={14} className="mb-1 opacity-80" />
-            <div className="text-lg font-bold">{totalAttendanceDays}</div>
-            <div className="text-[9px] opacity-90">أيام حضور</div>
-          </div>
-        </div>
 
       </div>
     </div>
