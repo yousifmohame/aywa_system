@@ -2,6 +2,7 @@ import { prisma } from '@/app/lib/prisma'
 import { createDepartmentAction, deleteDepartmentAction } from '@/app/actions/departments'
 import { Trash2, Plus } from 'lucide-react'
 import EditDepartmentModal from '@/app/components/departments/EditDepartmentModal' // <--- استدعاء المكون
+ import DeleteDepartmentBtn from '@/app/components/departments/DeleteDepartmentBtn' // <--- استيراد
 
 export default async function DepartmentsSettingsPage() {
   const departments = await prisma.department.findMany({
@@ -52,11 +53,10 @@ export default async function DepartmentsSettingsPage() {
                 <EditDepartmentModal department={dept} />
 
                 {/* زر الحذف */}
-                <form action={deleteDeptWithId}>
-                  <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="حذف القسم">
-                    <Trash2 size={16} />
-                  </button>
-                </form>
+                <DeleteDepartmentBtn 
+                    id={dept.id} 
+                    employeeCount={dept._count.employees} 
+                />
               </div>
             </div>
           )

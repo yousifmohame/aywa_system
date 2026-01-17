@@ -36,7 +36,7 @@ model User {
   fullName     String
   role         Role           @default(EMPLOYEE)
   departmentId String?      // أصبح معرفاً وليس اسماً
-  department   Department?  @relation(fields: [departmentId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   avatarUrl    String?
   isActive     Boolean        @default(true)
   createdAt    DateTime       @default(now())
@@ -124,7 +124,7 @@ model Task {
 model EvaluationSetting {
   id             String         @id @default(uuid())
   departmentId   String     @unique
-  department     Department @relation(fields: [departmentId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   
   // أوزان التقييم (مجموعها يجب أن يكون 100)
   speedWeight    Int            @default(30)

@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/app/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 
 // إضافة قسم جديد
@@ -46,19 +47,19 @@ export async function updateDepartmentAction(formData: FormData) {
   }
 }
 
-// حذف قسم
 export async function deleteDepartmentAction(id: string) {
   try {
-    // التحقق أولاً: هل يوجد موظفين في هذا القسم؟
-    const count = await prisma.user.count({ where: { departmentId: id } })
-    if (count > 0) {
-      return { error: 'لا يمكن حذف قسم يحتوي على موظفين. انقلهم أولاً.' }
-    }
-
-    await prisma.department.delete({ where: { id } })
+    // بفضل onDelete: Cascade، هذا السطر سيحذف القسم 
+    // وسيحذف تلقائياً كل الموظفين وكل بياناتهم المرتبطة به.
+    await prisma.department.delete({
+      where: { id }
+    })
+    
     revalidatePath('/dashboard/settings/departments')
     return { success: true }
-  } catch (e) {
-    return { error: 'فشل الحذف' }
+
+  } catch (error) {
+    console.error('Delete Error:', error)
+    return { error: 'حدث خطأ أثناء حذف القسم.' }
   }
 }
