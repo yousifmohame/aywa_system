@@ -41,6 +41,8 @@ model User {
   isActive     Boolean        @default(true)
   createdAt    DateTime       @default(now())
   isOvertimeEnabled Boolean @default(false)
+  customStartTime String?  // مثال: "08:00"
+  customEndTime   String?  // مثال: "16:00"
 
   // العلاقات
   tasksAssigned Task[]         @relation("AssignedTo")
@@ -60,7 +62,7 @@ model SystemSettings {
 model DailyPerformance {
   id        String   @id @default(uuid())
   date      DateTime @default(now())
-  
+  delayMinutes    Int      @default(0) // عدد دقائق التأخير
   // علاقة مع الموظف
   userId    String
   user      User     @relation(fields: [userId], references: [id])

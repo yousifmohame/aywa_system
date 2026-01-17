@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { editEmployeeAction } from '@/app/actions/employees' // تأكد من وجود هذا الأكشن
-import { X, UserCog, Loader2, Save, User } from 'lucide-react'
+import { editEmployeeAction } from '@/app/actions/employees'
+import { X, UserCog, Loader2, Save, User, Clock } from 'lucide-react'
 
 export default function EditEmployeeModal({ employee, departments }: { employee: any, departments: any[] }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -15,7 +15,6 @@ export default function EditEmployeeModal({ employee, departments }: { employee:
     setError('')
 
     const formData = new FormData(event.currentTarget)
-    // إضافة ID الموظف للفورم داتا يدوياً
     formData.append('id', employee.id)
 
     const result = await editEmployeeAction(formData)
@@ -41,9 +40,9 @@ export default function EditEmployeeModal({ employee, departments }: { employee:
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 font-[Tajawal]" dir="rtl">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 h-[90vh] overflow-y-auto scrollbar-hide">
             
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
               <h3 className="font-bold text-gray-800">تعديل بيانات {employee.fullName}</h3>
               <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-red-500 transition-colors">
                 <X size={20} />
@@ -68,14 +67,13 @@ export default function EditEmployeeModal({ employee, departments }: { employee:
                 />
               </div>
 
-              {/* === هنا التعديل: type="text" === */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">معرف الدخول (اسم أو إيميل)</label>
                 <div className="relative">
                     <input 
                         type="text" 
                         name="email" 
-                        defaultValue={employee.email} 
+                        defaultValue={employee.email || employee.username} // عرض الإيميل أو اليوزرنيم الحالي
                         required 
                         className="w-full px-3 py-2 pl-8 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                         dir="ltr"
@@ -124,16 +122,44 @@ export default function EditEmployeeModal({ employee, departments }: { employee:
                 </div>
               </div>
 
+               {/* === جديد: مواعيد العمل الخاصة === */}
+               <div className="border-t border-dashed border-gray-200 pt-4 mt-2">
+                <h4 className="text-xs font-bold text-blue-600 mb-3 flex items-center gap-1">
+                  <Clock size={14} /> مواعيد عمل خاصة (اختياري)
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 mb-1">وقت الحضور</label>
+                    <input 
+                      type="time" 
+                      name="customStartTime" 
+                      defaultValue={employee.customStartTime || ''} // القيمة الحالية
+                      className="w-full px-2 py-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 mb-1">وقت الانصراف</label>
+                    <input 
+                      type="time" 
+                      name="customEndTime" 
+                      defaultValue={employee.customEndTime || ''} // القيمة الحالية
+                      className="w-full px-2 py-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-gray-400 mt-2">اتركها فارغة لتطبيق المواعيد العامة للنظام.</p>
+              </div>
+
               {/* حالة الحساب */}
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
                 <input 
                     type="checkbox" 
                     name="isActive" 
-                    id="isActive"
+                    id={`isActive-${employee.id}`}
                     defaultChecked={employee.isActive}
                     className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="isActive" className="text-sm text-gray-700 font-bold">حساب نشط</label>
+                <label htmlFor={`isActive-${employee.id}`} className="text-sm text-gray-700 font-bold">حساب نشط</label>
               </div>
 
               <div className="pt-2">

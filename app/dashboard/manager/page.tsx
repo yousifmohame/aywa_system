@@ -77,7 +77,8 @@ export default async function ManagerDashboardPage() {
             workHours: true, 
             overtimeHours: true,
             checkIn: true,
-            checkOut: true
+            checkOut: true,
+            delayMinutes: true // <--- تم إضافة هذا الحقل ليتم جلبه من القاعدة
           }
         }
       },
@@ -132,6 +133,7 @@ export default async function ManagerDashboardPage() {
       fullName: emp.fullName,
       department: emp.department?.name || null,
       isOvertimeEnabled: emp.isOvertimeEnabled,
+      delayMinutes: todayRecord?.delayMinutes || 0, // الآن سيحمل قيمة صحيحة
       monthlyOvertime: Math.round(totalMonthlyOvertime * 100) / 100,
       monthlyWorkHours: Math.round(totalMonthlyWorkHours * 100) / 100,
       todayCheckIn: todayRecord?.checkIn ? formatTime(todayRecord.checkIn) : '-',
@@ -150,7 +152,7 @@ export default async function ManagerDashboardPage() {
         <p className="text-xs text-gray-500">نظرة شاملة على أداء الشركة والموارد البشرية</p>
       </div>
 
-      {/* 1. Top Stats Cards (Enhanced Colors) */}
+      {/* 1. Top Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard title="إجمالي الموظفين" value={totalEmployees} icon={Users} gradient="from-blue-600 to-blue-700" />
         <StatCard title="خدمة العملاء" value={csCount} icon={Headset} gradient="from-purple-600 to-purple-700" />
@@ -207,7 +209,7 @@ export default async function ManagerDashboardPage() {
         </div>
       </div>
 
-      {/* 3. Attendance Table (Enhanced) */}
+      {/* 3. Attendance Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
@@ -226,6 +228,7 @@ export default async function ManagerDashboardPage() {
                         <th className="px-5 py-3 text-[10px] text-gray-500 font-bold uppercase tracking-wider">الموظف</th>
                         <th className="px-5 py-3 text-[10px] text-gray-500 font-bold text-center uppercase tracking-wider">حالة اليوم</th>
                         <th className="px-5 py-3 text-[10px] text-gray-500 font-bold text-center uppercase tracking-wider">وقت الحضور</th>
+                        <th className="px-5 py-3 text-[10px] text-gray-500 font-bold text-center uppercase tracking-wider">التأخير</th>
                         <th className="px-5 py-3 text-[10px] text-gray-500 font-bold text-center uppercase tracking-wider">ساعات اليوم</th>
                         <th className="px-5 py-3 text-[10px] text-gray-500 font-bold text-center uppercase tracking-wider">إجمالي الشهر</th>
                         <th className="px-5 py-3 text-[10px] text-gray-500 font-bold text-center uppercase tracking-wider">أوفر تايم</th>
@@ -258,6 +261,16 @@ export default async function ManagerDashboardPage() {
                             <td className="px-5 py-3 text-center text-xs font-mono text-gray-600 bg-gray-50/30">
                                 {emp.todayCheckIn} - {emp.todayCheckOut}
                             </td>
+                            {/* خلية التأخير الجديدة */}
+                            <td className="px-5 py-3 text-center">
+                                {emp.delayMinutes > 0 ? (
+                                    <span className="bg-red-50 text-red-600 px-2 py-1 rounded-md text-[10px] font-bold border border-red-100 flex items-center justify-center gap-1 animate-pulse">
+                                        ⏱ {emp.delayMinutes} د
+                                    </span>
+                                ) : (
+                                    <span className="text-gray-300 text-[10px] font-bold">منتظم</span>
+                                )}
+                            </td>
                             <td className="px-5 py-3 text-center">
                                 <span className="font-bold text-gray-800 text-xs">{emp.todayWorkHours}</span>
                             </td>
@@ -281,10 +294,7 @@ export default async function ManagerDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* 4. Overtime List */}
           <OvertimeList employees={employeesStats} shiftHours={shiftHours} />
-
-          {/* 5. Fulfillment Stats */}
           <FulfillmentStats />
       </div>
 

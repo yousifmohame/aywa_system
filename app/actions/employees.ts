@@ -13,6 +13,8 @@ export async function addEmployeeAction(formData: FormData) {
   const password = formData.get('password') as string
   const departmentId = formData.get('departmentId') as string 
   const role = formData.get('role') as any
+  const customStartTime = formData.get('customStartTime') as string
+  const customEndTime = formData.get('customEndTime') as string
 
   // التحقق من الحقول الأساسية
   if (!fullName || !email || !password || !departmentId) {
@@ -43,6 +45,8 @@ export async function addEmployeeAction(formData: FormData) {
         password: hashedPassword,
         role: role || 'EMPLOYEE',
         departmentId: departmentId, 
+        customStartTime: customStartTime || null,
+        customEndTime: customEndTime || null,
         isActive: true,
         // صورة افتراضية
         avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`,
@@ -69,6 +73,8 @@ export async function editEmployeeAction(formData: FormData) {
   const departmentId = formData.get('departmentId') as string
   const role = formData.get('role') as any
   const isActive = formData.get('isActive') === 'on' 
+  const customStartTime = formData.get('customStartTime') as string
+  const customEndTime = formData.get('customEndTime') as string
 
   if (!id || !fullName || !email || !departmentId) {
     return { error: 'البيانات الأساسية مطلوبة' }
@@ -95,7 +101,9 @@ export async function editEmployeeAction(formData: FormData) {
       email: cleanEmail,
       departmentId,
       role,
-      isActive
+      isActive,
+      customStartTime: customStartTime || null,
+      customEndTime: customEndTime || null,
     }
 
     // تحديث كلمة المرور (فقط إذا كتب واحدة جديدة) وتشفيرها

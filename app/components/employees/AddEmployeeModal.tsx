@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { addEmployeeAction } from '@/app/actions/employees'
-import { X, Plus, Loader2, User } from 'lucide-react'
+import { X, Plus, Loader2, User, Clock } from 'lucide-react'
 
 export default function AddEmployeeModal({ departments }: { departments: any[] }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -16,7 +16,6 @@ export default function AddEmployeeModal({ departments }: { departments: any[] }
 
     const formData = new FormData(event.currentTarget)
     
-    // استدعاء الأكشن
     const result = await addEmployeeAction(formData)
 
     setIsLoading(false)
@@ -25,7 +24,6 @@ export default function AddEmployeeModal({ departments }: { departments: any[] }
       setError(result.error)
     } else {
       setIsOpen(false)
-      // إعادة تعيين النموذج
       event.currentTarget.reset()
     }
   }
@@ -42,10 +40,10 @@ export default function AddEmployeeModal({ departments }: { departments: any[] }
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 font-[Tajawal]" dir="rtl">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 h-[90vh] overflow-y-auto scrollbar-hide">
             
             {/* Modal Header */}
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
               <h3 className="font-bold text-gray-800">تسجيل موظف جديد</h3>
               <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-red-500 transition-colors">
                 <X size={20} />
@@ -72,13 +70,13 @@ export default function AddEmployeeModal({ departments }: { departments: any[] }
                 />
               </div>
 
-              {/* البريد الإلكتروني (يستخدم كمعرف دخول) */}
+              {/* معرف الدخول */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">معرف الدخول (اسم أو إيميل)</label>
                 <div className="relative">
                   <input 
-                      type="text" // جعلناه text ليقبل الأسماء العادية أو الإيميلات
-                      name="email" // نستخدم email لأن هذا العمود هو الموجود في قاعدة البيانات
+                      type="text"
+                      name="email"
                       required 
                       className="w-full px-3 py-2 pl-8 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                       placeholder="username OR email@company.com" 
@@ -87,7 +85,7 @@ export default function AddEmployeeModal({ departments }: { departments: any[] }
                   />
                   <User className="absolute left-2.5 top-2.5 text-gray-400" size={16} />
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1">سيتم حفظ هذا في حقل الإيميل واستخدامه للدخول</p>
+                <p className="text-[10px] text-gray-400 mt-1">يستخدم لتسجيل الدخول للنظام</p>
               </div>
 
               {/* كلمة المرور */}
@@ -131,6 +129,32 @@ export default function AddEmployeeModal({ departments }: { departments: any[] }
                     <option value="MANAGER">مدير</option>
                   </select>
                 </div>
+              </div>
+
+              {/* === جديد: مواعيد العمل الخاصة === */}
+              <div className="border-t border-dashed border-gray-200 pt-4 mt-2">
+                <h4 className="text-xs font-bold text-blue-600 mb-3 flex items-center gap-1">
+                  <Clock size={14} /> مواعيد عمل خاصة (اختياري)
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 mb-1">وقت الحضور</label>
+                    <input 
+                      type="time" 
+                      name="customStartTime" 
+                      className="w-full px-2 py-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 mb-1">وقت الانصراف</label>
+                    <input 
+                      type="time" 
+                      name="customEndTime" 
+                      className="w-full px-2 py-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-gray-400 mt-2">اتركها فارغة لتطبيق المواعيد العامة للنظام.</p>
               </div>
 
               <div className="pt-2">

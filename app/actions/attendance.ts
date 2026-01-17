@@ -3,127 +3,121 @@
 import { prisma } from '@/app/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
-// 1. دالة مساعدة لتحويل وقت النص (مثال 09:00) إلى دقائق
 const timeToMinutes = (time: string) => {
   const [h, m] = time.split(':').map(Number)
   return h * 60 + m
 }
 
-// 2. دالة جديدة للحصول على الوقت الحالي في السعودية حصراً
 const getCurrentSaudiTime = () => {
   const now = new Date()
-  
-  // تحويل الوقت الحالي إلى توقيت السعودية (الرياض)
   const timeString = now.toLocaleTimeString('en-US', {
-    timeZone: 'Asia/Riyadh', // <--- التغيير هنا
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit'
+    timeZone: 'Asia/Riyadh',
+    hour12: false, hour: '2-digit', minute: '2-digit'
   })
-  
   let [h, m] = timeString.split(':').map(Number)
   if (h === 24) h = 0
-
-  return {
-    dateObj: now, 
-    saudiMinutes: h * 60 + m // الدقائق بتوقيت السعودية
-  }
+  return { dateObj: now, saudiMinutes: h * 60 + m }
 }
 
 export async function employeeAttendanceAction(userId: string) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   
-  const settings = await prisma.systemSettings.findFirst()
-  if (!settings) return { error: 'لم يتم ضبط إعدادات النظام' }
+  // 1. جلب بيانات الموظف (لمعرفة مواعيده الخاصة) + الإعدادات العامة
+  const [user, settings] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.systemSettings.findFirst()
+  ])
+
+  if (!user || !settings) return { error: 'بيانات غير مكتملة' }
+
+  // 2. تحديد وقت الدوام المعتمد لهذا الموظف
+  // الأولوية للوقت الخاص، ثم الوقت العام
+  const effectiveStartTimeStr = user.customStartTime || settings.workStartTime
+  const effectiveEndTimeStr = user.customEndTime || settings.workEndTime
+
+  const startMinutes = timeToMinutes(effectiveStartTimeStr)
+  const endMinutes = timeToMinutes(effectiveEndTimeStr)
 
   const performance = await prisma.dailyPerformance.findFirst({
     where: { userId, date: { gte: today } }
   })
 
-  // === جلب توقيت السعودية الحالي ===
   const { dateObj, saudiMinutes } = getCurrentSaudiTime()
-  const startMinutes = timeToMinutes(settings.workStartTime)
-  const endMinutes = timeToMinutes(settings.workEndTime)
 
-  // === منطق تسجيل الحضور (Check In) ===
+  // === تسجيل الحضور (Check In) ===
   if (!performance || !performance.checkIn) {
-    
-    // السماح بالدخول قبل الموعد بـ 30 دقيقة
     const ALLOWED_EARLY_MINUTES = 0
-
-    // الشرط: هل الوقت الحالي في السعودية أقل من (بداية الدوام - 30 دقيقة)؟
+    
     if (saudiMinutes < startMinutes - ALLOWED_EARLY_MINUTES) {
-        return { 
-            error: `عذراً، لم يبدأ الدوام بعد. يمكنك تسجيل الحضور بدءاً من ${settings.workStartTime}` 
-        }
+        return { error: `لم يبدأ دوامك بعد. موعدك: ${effectiveStartTimeStr}` }
     }
 
     let statusNote = 'حضور في الوقت'
     let score = 100
+    let delayMinutes = 0
 
-    // التأخير: هل الوقت الحالي أكبر من وقت البدء + فترة السماح؟
+    // === حساب التأخير ===
+    // إذا حضر بعد وقت البدء + فترة السماح
     if (saudiMinutes > startMinutes + settings.lateThreshold) {
       statusNote = 'تأخير'
-      score = 80
+      // حساب دقائق التأخير بالضبط
+      delayMinutes = saudiMinutes - startMinutes
+      
+      // خصم درجات (مثلاً درجة لكل دقيقة تأخير بحد أقصى)
+      score = Math.max(50, 100 - (delayMinutes / 2)) 
     }
 
     if (!performance) {
       await prisma.dailyPerformance.create({
-        data: { userId, date: dateObj, checkIn: dateObj, rating: statusNote, score }
+        data: { 
+            userId, 
+            date: dateObj, 
+            checkIn: dateObj, 
+            rating: statusNote, 
+            score,
+            delayMinutes // حفظ التأخير
+        }
       })
     } else {
       await prisma.dailyPerformance.update({
         where: { id: performance.id },
-        data: { checkIn: dateObj, rating: statusNote, score }
+        data: { checkIn: dateObj, rating: statusNote, score, delayMinutes }
       })
     }
     
     revalidatePath('/dashboard/employee')
-    return { success: true, message: `تم تسجيل الحضور (${statusNote})` }
+    return { success: true, message: `تم تسجيل الحضور (${statusNote}) - تأخير: ${delayMinutes} دقيقة` }
   }
 
-  // === منطق تسجيل الانصراف (Check Out) ===
+  // === تسجيل الانصراف (Check Out) ===
   else if (performance.checkIn && !performance.checkOut) {
-    
-    // منع الانصراف المبكر
     if (saudiMinutes < endMinutes) {
-      return { 
-        error: `عذراً، لا يمكنك تسجيل الانصراف قبل انتهاء الدوام الرسمي (${settings.workEndTime})` 
-      }
+      return { error: `لا يمكنك الانصراف قبل انتهاء دوامك (${effectiveEndTimeStr})` }
     }
 
-    // === حساب الساعات بدقة ===
-    // نحتاج لمعرفة وقت الحضور بالدقائق (بتوقيت السعودية)
+    // حساب الساعات (بناءً على التوقيت الخاص)
     const checkInDate = new Date(performance.checkIn)
-    const checkInTimeString = checkInDate.toLocaleTimeString('en-US', {
-        timeZone: 'Asia/Riyadh', // <--- التغيير هنا أيضاً لحساب الفرق بشكل صحيح
-        hour12: false, hour: '2-digit', minute: '2-digit'
+    const checkInTimeStr = checkInDate.toLocaleTimeString('en-US', {
+        timeZone: 'Asia/Riyadh', hour12: false, hour: '2-digit', minute: '2-digit'
     })
-    const [chH, chM] = checkInTimeString.split(':').map(Number)
+    const [chH, chM] = checkInTimeStr.split(':').map(Number)
     const checkInSaudiMinutes = chH * 60 + chM
 
-    // نقطة بداية الحساب: الأكبر بين (وقت الحضور الفعلي) و (وقت بداية الدوام الرسمي)
-    const effectiveStartMinutes = Math.max(checkInSaudiMinutes, startMinutes)
-    
-    // مدة العمل = وقت الانصراف الحالي - وقت البداية الفعال
-    const workDurationMinutes = saudiMinutes - effectiveStartMinutes
+    const effectiveStartCalc = Math.max(checkInSaudiMinutes, startMinutes)
+    const workDurationMinutes = saudiMinutes - effectiveStartCalc
     const totalHoursWorked = Math.max(0, workDurationMinutes / 60)
 
     // حساب الأوفر تايم
-    const user = await prisma.user.findUnique({ where: { id: userId } })
-    const officialShiftDuration = (endMinutes - startMinutes) / 60
-
+    const shiftDuration = (endMinutes - startMinutes) / 60
     let regularHours = totalHoursWorked
     let overtimeHours = 0
 
-    if (user?.isOvertimeEnabled && totalHoursWorked > officialShiftDuration) {
-        regularHours = officialShiftDuration
-        overtimeHours = totalHoursWorked - officialShiftDuration
-    } else {
-        if (!user?.isOvertimeEnabled) {
-            regularHours = Math.min(totalHoursWorked, officialShiftDuration)
-        }
+    if (user.isOvertimeEnabled && totalHoursWorked > shiftDuration) {
+        regularHours = shiftDuration
+        overtimeHours = totalHoursWorked - shiftDuration
+    } else if (!user.isOvertimeEnabled) {
+        regularHours = Math.min(totalHoursWorked, shiftDuration)
     }
 
     await prisma.dailyPerformance.update({
@@ -136,6 +130,6 @@ export async function employeeAttendanceAction(userId: string) {
     })
 
     revalidatePath('/dashboard/employee')
-    return { success: true, message: 'تم تسجيل الانصراف وحساب الساعات بنجاح' }
+    return { success: true, message: 'تم تسجيل الانصراف' }
   }
 }
