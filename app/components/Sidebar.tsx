@@ -56,8 +56,8 @@ export default function Sidebar({ userRole, isOpen, setIsOpen }: any) {
           {/* 1. Logo Area */}
           <div className="h-20 flex items-center justify-center border-b border-slate-800 bg-gradient-to-b from-[#0f172a] to-[#1e293b]">
             <div className="text-center">
-              <h1 className="text-xl font-bold tracking-wide text-white">Aiwa Nazeel</h1>
-              <p className="text-[10px] text-blue-400 tracking-wider uppercase opacity-80">Management System</p>
+              <h1 className="text-xl font-bold tracking-wide text-white">بوابة الموظفين</h1>
+              <p className="text-[10px] text-blue-400 tracking-wider uppercase opacity-80">مركز التحكم</p>
             </div>
           </div>
 
