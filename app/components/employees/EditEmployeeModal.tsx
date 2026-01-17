@@ -1,103 +1,151 @@
 'use client'
 
 import { useState } from 'react'
-import { updateEmployeeAction } from '@/app/actions/employees'
-import { UserCog, X, Loader2, Save } from 'lucide-react'
+import { editEmployeeAction } from '@/app/actions/employees' // تأكد من وجود هذا الأكشن
+import { X, UserCog, Loader2, Save, User } from 'lucide-react'
 
-// تعريف نوع البيانات المتوقع
-type Props = {
-  employee: any
-  departments: any[]
-}
-
-export default function EditEmployeeModal({ employee, departments }: Props) {
+export default function EditEmployeeModal({ employee, departments }: { employee: any, departments: any[] }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     setIsLoading(true)
-    const formData = new FormData(e.currentTarget)
-    
-    // إضافة الـ ID يدوياً لأنه غير موجود في حقول الإدخال الظاهرة
+    setError('')
+
+    const formData = new FormData(event.currentTarget)
+    // إضافة ID الموظف للفورم داتا يدوياً
     formData.append('id', employee.id)
-    
-    await updateEmployeeAction(formData)
-    
+
+    const result = await editEmployeeAction(formData)
+
     setIsLoading(false)
-    setIsOpen(false)
+
+    if (result.error) {
+      setError(result.error)
+    } else {
+      setIsOpen(false)
+    }
   }
 
   return (
     <>
-      {/* زر فتح النافذة (نفس شكل الزر القديم) */}
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
-        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
         title="تعديل"
       >
         <UserCog size={16} />
       </button>
 
-      {/* النافذة المنبثقة */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 font-[Tajawal]" dir="rtl">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
             
-            <div className="flex justify-between items-center p-4 border-b bg-gray-50">
-              <h3 className="font-bold text-gray-800">تعديل بيانات: {employee.fullName}</h3>
-              <button onClick={() => setIsOpen(false)}><X size={20} className="text-gray-400 hover:text-red-500" /></button>
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="font-bold text-gray-800">تعديل بيانات {employee.fullName}</h3>
+              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-red-500 transition-colors">
+                <X size={20} />
+              </button>
             </div>
-            
-            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               
+              {error && (
+                <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg text-center font-bold">
+                  {error}
+                </div>
+              )}
+
               <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1">الاسم الكامل</label>
-                <input name="fullName" defaultValue={employee.fullName} required className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                <label className="block text-xs font-bold text-gray-700 mb-1">الاسم الكامل</label>
+                <input 
+                    name="fullName" 
+                    defaultValue={employee.fullName} 
+                    required 
+                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                />
+              </div>
+
+              {/* === هنا التعديل: type="text" === */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">معرف الدخول (اسم أو إيميل)</label>
+                <div className="relative">
+                    <input 
+                        type="text" 
+                        name="email" 
+                        defaultValue={employee.email} 
+                        required 
+                        className="w-full px-3 py-2 pl-8 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                        dir="ltr"
+                    />
+                    <User className="absolute left-2.5 top-2.5 text-gray-400" size={16} />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1">البريد الإلكتروني</label>
-                <input type="email" name="email" defaultValue={employee.email} required className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-left" dir="ltr" />
+                <label className="block text-xs font-bold text-gray-700 mb-1">كلمة المرور (اتركها فارغة للإبقاء على القديمة)</label>
+                <input 
+                    type="text" 
+                    name="password" 
+                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                    placeholder="تغيير كلمة المرور..."
+                    dir="ltr"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">القسم</label>
-                    <select name="departmentId" defaultValue={employee.departmentId || ''} className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">القسم</label>
+                  <select 
+                    name="departmentId" 
+                    defaultValue={employee.departmentId || ''}
+                    required 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                  >
                     <option value="">اختر القسم...</option>
                     {departments.map(dept => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
                     ))}
-                    </select>
+                  </select>
                 </div>
+                
                 <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">الدور</label>
-                    <select name="role" defaultValue={employee.role} className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">الدور الوظيفي</label>
+                  <select 
+                    name="role" 
+                    defaultValue={employee.role}
+                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                  >
                     <option value="EMPLOYEE">موظف</option>
                     <option value="SUPERVISOR">مشرف</option>
-                    <option value="MANAGER">مدير</option>
-                    </select>
+                  </select>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1">تغيير كلمة المرور (اختياري)</label>
-                <input type="password" name="password" placeholder="اتركه فارغاً للإبقاء على القديمة" className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-left" dir="ltr" />
+              {/* حالة الحساب */}
+              <div className="flex items-center gap-2 mt-2">
+                <input 
+                    type="checkbox" 
+                    name="isActive" 
+                    id="isActive"
+                    defaultChecked={employee.isActive}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="isActive" className="text-sm text-gray-700 font-bold">حساب نشط</label>
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
-                <input type="checkbox" name="isActive" id="isActive" defaultChecked={employee.isActive} className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" />
-                <label htmlFor="isActive" className="text-sm font-bold text-gray-700">الحساب نشط (يمكنه الدخول للنظام)</label>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {isLoading ? <Loader2 size={16} className="animate-spin" /> : <><Save size={16} /> حفظ التعديلات</>}
+                </button>
               </div>
 
-              <button 
-                type="submit" 
-                disabled={isLoading}
-                className="w-full bg-[#0f172a] text-white font-bold py-2.5 rounded-lg flex justify-center items-center gap-2 hover:bg-blue-900 transition-colors"
-              >
-                {isLoading ? <Loader2 className="animate-spin" size={18} /> : <><Save size={18} /> حفظ التعديلات</>}
-              </button>
             </form>
           </div>
         </div>

@@ -84,12 +84,81 @@ export async function updateEmployeeAction(formData: FormData) {
 }
 
 // دالة حذف موظف
-export async function deleteEmployeeAction(id: string) {
+export async function deleteEmployeeAction(employeeId: string) {
   try {
-    await prisma.user.delete({ where: { id } })
+    // حذف السجلات المرتبطة أولاً (مثل الأداء والمهام) لتجنب أخطاء Foreign Key
+    // ملاحظة: إذا كان لديك `onDelete: Cascade` في قاعدة البيانات، يكفي حذف اليوزر فقط.
+    // لكن للأمان سنحذف الأداء اليومي أولاً إذا لم يكن Cascade مفعلاً
+    await prisma.dailyPerformance.deleteMany({ where: { userId: employeeId } })
+    await prisma.task.deleteMany({ where: { assignedToId: employeeId } })
+
+    // حذف الموظف
+    await prisma.user.delete({
+      where: { id: employeeId }
+    })
+
     revalidatePath('/dashboard/employees')
     return { success: true }
   } catch (error) {
-    return { error: 'فشل الحذف' }
+    console.error('Delete Error:', error)
+    return { error: 'فشل حذف الموظف. قد يكون لديه سجلات مرتبطة.' }
+  }
+}
+
+// دالة التعديل
+export async function editEmployeeAction(formData: FormData) {
+  const id = formData.get('id') as string
+  const fullName = formData.get('fullName') as string
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  const departmentId = formData.get('departmentId') as string
+  const role = formData.get('role') as string
+  const isActive = formData.get('isActive') === 'on' // Checkbox returns 'on' if checked
+
+  if (!id || !fullName || !email || !departmentId) {
+    return { error: 'البيانات الأساسية مطلوبة' }
+  }
+
+  const cleanEmail = email.trim().toLowerCase()
+
+  try {
+    // التأكد من أن الإيميل/اليوزرنيم الجديد غير مستخدم من قبل شخص آخر
+    const existingUser = await prisma.user.findFirst({
+      where: { 
+        email: cleanEmail,
+        id: { not: id } // استثناء الموظف الحالي من البحث
+      }
+    })
+
+    if (existingUser) {
+      return { error: 'معرف الدخول هذا مستخدم بالفعل لموظف آخر' }
+    }
+
+    // تجهيز البيانات للتحديث
+    const updateData: any = {
+      fullName,
+      email: cleanEmail,
+      username: cleanEmail, // تحديث اليوزرنيم أيضاً
+      departmentId,
+      role: role as any,
+      isActive
+    }
+
+    // تحديث كلمة المرور فقط إذا تم إدخال واحدة جديدة
+    if (password && password.trim() !== '') {
+      updateData.password = password
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: updateData
+    })
+
+    revalidatePath('/dashboard/employees')
+    return { success: true }
+
+  } catch (error) {
+    console.error('Edit Error:', error)
+    return { error: 'فشل تحديث بيانات الموظف' }
   }
 }
