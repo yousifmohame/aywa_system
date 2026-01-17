@@ -22,14 +22,22 @@ export async function createDepartmentAction(formData: FormData) {
 }
 
 // تعديل قسم
-export async function updateDepartmentAction(id: string, formData: FormData) {
+export async function updateDepartmentAction(formData: FormData) {
+  const id = formData.get('id') as string
   const name = formData.get('name') as string
   const description = formData.get('description') as string
+
+  if (!id || !name) {
+    return { error: 'اسم القسم مطلوب' }
+  }
 
   try {
     await prisma.department.update({
       where: { id },
-      data: { name, description }
+      data: {
+        name,
+        description
+      }
     })
     revalidatePath('/dashboard/settings/departments')
     return { success: true }
