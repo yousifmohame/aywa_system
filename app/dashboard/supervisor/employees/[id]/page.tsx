@@ -5,8 +5,18 @@ import { Clock, Trophy, Target, Star, TrendingUp, Award, ArrowRight, Calendar, Z
 import BadgeGifter from '@/app/components/supervisor/BadgeGifter'
 import Link from 'next/link'
 
-// Helper function to format date
+// دالة تنسيق التاريخ (أسماء الأيام)
 const getDayName = (date: Date) => new Intl.DateTimeFormat('ar-EG', { weekday: 'long' }).format(date)
+
+// دالة تنسيق الوقت بتوقيت السعودية
+const formatTimeKSA = (date: Date) => {
+  return date.toLocaleTimeString('en-US', {
+    timeZone: 'Asia/Riyadh',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false // نظام 24 ساعة
+  })
+}
 
 type Props = {
   params: Promise<{ id: string }>
@@ -16,7 +26,7 @@ export default async function EmployeeProfilePage(props: Props) {
   const params = await props.params
   const employeeId = params.id
   
-  // 1. Fetch employee data + completed tasks count
+  // 1. جلب بيانات الموظف
   const employee = await prisma.user.findUnique({
     where: { id: employeeId },
     include: { 
@@ -32,7 +42,7 @@ export default async function EmployeeProfilePage(props: Props) {
 
   if (!employee) return notFound()
 
-  // 2. Setup dates
+  // 2. إعداد التواريخ
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   
@@ -42,18 +52,18 @@ export default async function EmployeeProfilePage(props: Props) {
 
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
-  // 3. Fetch performance data
+  // 3. جلب بيانات الأداء
   const [performances, todayPerf, departmentStats, monthlyStats] = await Promise.all([
-    // Last 7 days performance
+    // أداء آخر 7 أيام
     prisma.dailyPerformance.findMany({
       where: { userId: employeeId, date: { gte: sevenDaysAgo } },
       orderBy: { date: 'asc' }
     }),
-    // Today's performance
+    // أداء اليوم
     prisma.dailyPerformance.findFirst({
       where: { userId: employeeId, date: { gte: today } }
     }),
-    // Department stats for ranking
+    // إحصائيات القسم للترتيب
     prisma.dailyPerformance.groupBy({
       by: ['userId'],
       where: { 
@@ -62,7 +72,7 @@ export default async function EmployeeProfilePage(props: Props) {
       },
       _avg: { score: true }
     }),
-    // Monthly stats (Attendance count, Overtime sum)
+    // إحصائيات الشهر (الحضور والأوفر تايم)
     prisma.dailyPerformance.aggregate({
         where: { userId: employeeId, date: { gte: startOfMonth } },
         _count: { id: true },
@@ -70,9 +80,9 @@ export default async function EmployeeProfilePage(props: Props) {
     })
   ])
 
-  // 4. Process Data
+  // 4. معالجة البيانات
   
-  // A) Chart Data
+  // أ) الرسم البياني
   const chartData = []
   for (let i = 0; i < 7; i++) {
     const d = new Date(sevenDaysAgo)
@@ -85,18 +95,18 @@ export default async function EmployeeProfilePage(props: Props) {
     })
   }
 
-  // B) Calculate Rank
+  // ب) حساب الترتيب
   const sortedRanks = departmentStats.sort((a, b) => (b._avg.score || 0) - (a._avg.score || 0))
   const myRankIndex = sortedRanks.findIndex(r => r.userId === employeeId)
   const rank = myRankIndex !== -1 ? myRankIndex + 1 : '-'
 
-  // C) Format Times for Display
+  // ج) تنسيق الأوقات بتوقيت السعودية
   const checkInTime = todayPerf?.checkIn 
-    ? new Date(todayPerf.checkIn).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+    ? formatTimeKSA(new Date(todayPerf.checkIn))
     : '--:--'
     
   const checkOutTime = todayPerf?.checkOut 
-    ? new Date(todayPerf.checkOut).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+    ? formatTimeKSA(new Date(todayPerf.checkOut))
     : '--:--'
 
   const todayOvertime = todayPerf?.overtimeHours || 0
@@ -107,7 +117,7 @@ export default async function EmployeeProfilePage(props: Props) {
   return (
     <div className="max-w-md mx-auto h-full flex flex-col font-[Tajawal]" dir="rtl">
       
-      {/* Back Button */}
+      {/* زر العودة */}
       <div className="flex items-center gap-2 mb-4">
         <Link href="/dashboard/supervisor" className="p-2 bg-white rounded-full text-gray-500 hover:text-blue-600 shadow-sm transition-colors">
           <ArrowRight size={18} />
@@ -120,7 +130,7 @@ export default async function EmployeeProfilePage(props: Props) {
 
       <div className="space-y-3 overflow-y-auto pb-4 scrollbar-hide">
         
-        {/* 1. Main Info Card */}
+        {/* 1. بطاقة المعلومات الرئيسية */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-4 rounded-xl text-white shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
           
@@ -150,7 +160,7 @@ export default async function EmployeeProfilePage(props: Props) {
           </div>
         </div>
 
-        {/* 2. Today's Attendance & Overtime (Read-Only) */}
+        {/* 2. سجل الحضور (للمشاهدة فقط) */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-3">
                 <h3 className="text-xs font-bold text-gray-900 flex items-center gap-2">
@@ -184,7 +194,7 @@ export default async function EmployeeProfilePage(props: Props) {
             </div>
         </div>
 
-        {/* 3. Monthly Statistics Summary */}
+        {/* 3. ملخص الشهر */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
              <h3 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-2">
                 <Calendar size={16} className="text-purple-600" />
@@ -206,13 +216,13 @@ export default async function EmployeeProfilePage(props: Props) {
             </div>
         </div>
 
-        {/* 4. Weekly Chart */}
+        {/* 4. الرسم البياني */}
         <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
           <h3 className="text-xs font-bold text-gray-900 mb-2">الأداء الأسبوعي</h3>
           <EmployeeProfileChart data={chartData} />
         </div>
 
-        {/* 5. Badges */}
+        {/* 5. الأوسمة */}
         <BadgeGifter employeeId={employeeId} existingBadges={employee.badges} />
 
       </div>

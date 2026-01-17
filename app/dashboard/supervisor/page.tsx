@@ -33,7 +33,7 @@ export default async function SupervisorDashboard() {
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
 
-  // 2. جلب إحصائيات القسم لليوم (Aggregation)
+  // 2. جلب إحصائيات القسم لليوم
   const todayStats = await prisma.dailyPerformance.aggregate({
     where: {
       user: { departmentId: supervisor.departmentId },
@@ -42,7 +42,7 @@ export default async function SupervisorDashboard() {
     _sum: {
       callsCount: true,
       ordersPrepared: true,
-      workHours: true, // ساعات العمل اليومية للفريق
+      workHours: true,
     },
     _avg: {
       score: true,
@@ -51,7 +51,7 @@ export default async function SupervisorDashboard() {
     }
   })
 
-  // 3. جلب إجمالي الأوفر تايم للقسم (لهذا الشهر)
+  // 3. جلب إجمالي الأوفر تايم للقسم
   const monthlyStats = await prisma.dailyPerformance.aggregate({
     where: {
       user: { departmentId: supervisor.departmentId },
@@ -62,7 +62,7 @@ export default async function SupervisorDashboard() {
     }
   })
 
-  // 4. جلب فريق العمل مع أدائهم (للشهر الحالي بالكامل لحساب التراكمي)
+  // 4. جلب فريق العمل
   const teamMembers = await prisma.user.findMany({
     where: { 
       departmentId: supervisor.departmentId,
@@ -71,10 +71,9 @@ export default async function SupervisorDashboard() {
     },
     include: {
       tasksAssigned: { where: { status: 'IN_PROGRESS' } },
-      // نجلب أداء الشهر الحالي بالكامل
       performances: { 
         where: { date: { gte: startOfMonth } },
-        orderBy: { date: 'desc' } // الأحدث (اليوم) يكون أول واحد
+        orderBy: { date: 'desc' }
       }
     },
     orderBy: { fullName: 'asc' }
@@ -86,27 +85,30 @@ export default async function SupervisorDashboard() {
   const avgScore = Math.round(todayStats._avg.score || 0)
   const departmentOvertime = monthlyStats._sum.overtimeHours || 0
 
-  // معالجة بيانات الموظفين (استخراج بيانات اليوم + تجميع بيانات الشهر)
   const processedTeam = teamMembers.map(member => {
-    // العثور على سجل اليوم
     const todayPerf = member.performances.find(p => new Date(p.date).setHours(0,0,0,0) === today.getTime())
-    
-    // حساب الأوفر تايم الشهري
     const monthlyOvertime = member.performances.reduce((sum, p) => sum + (p.overtimeHours || 0), 0)
     
     return {
       ...member,
       todayPerf,
       monthlyOvertime,
-      // بيانات الإنتاجية لليوم (للترتيب)
       todayVol: isFulfillment ? (todayPerf?.ordersPrepared || 0) : (todayPerf?.callsCount || 0)
     }
   })
 
-  // ترتيب الموظفين حسب الإنتاجية اليوم
   const sortedTeam = [...processedTeam].sort((a, b) => b.todayVol - a.todayVol)
-
   const topPerformer = sortedTeam[0]
+
+  // === دالة مساعدة لتنسيق الوقت بتوقيت السعودية ===
+  const formatTimeKSA = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      timeZone: 'Asia/Riyadh', // تحديد توقيت السعودية
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false // نظام 24 ساعة
+    })
+  }
 
   return (
     <div className="space-y-6 font-[Tajawal]" dir="rtl">
@@ -126,8 +128,6 @@ export default async function SupervisorDashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        
-        {/* 1. بطاقة الإنتاجية */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="flex justify-between items-start">
              <div>
@@ -140,7 +140,6 @@ export default async function SupervisorDashboard() {
           </div>
         </div>
 
-        {/* 2. بطاقة السرعة */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="flex justify-between items-start">
              <div>
@@ -155,7 +154,6 @@ export default async function SupervisorDashboard() {
           </div>
         </div>
 
-        {/* 3. بطاقة الأوفر تايم (الجديدة) */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="flex justify-between items-start">
              <div>
@@ -173,7 +171,6 @@ export default async function SupervisorDashboard() {
           </div>
         </div>
 
-        {/* 4. بطاقة أفضل موظف */}
         <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-xl shadow-sm border border-orange-100 flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <div>
@@ -192,15 +189,15 @@ export default async function SupervisorDashboard() {
         </div>
       </div>
 
-      {/* Live Leaderboard Table */}
+      {/* Live Leaderboard Table (Mobile) */}
       <div className="md:hidden space-y-2">
         {sortedTeam.map((member, idx) => {
           const perf = member.todayPerf
           const vol = member.todayVol
-          const isBusy = member.tasksAssigned.length > 0
-          // تنسيق الوقت
-          const checkInTime = perf?.checkIn ? new Date(perf.checkIn).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}) : '--:--'
-          const checkOutTime = perf?.checkOut ? new Date(perf.checkOut).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}) : '--:--'
+          
+          // === استخدام توقيت السعودية ===
+          const checkInTime = perf?.checkIn ? formatTimeKSA(new Date(perf.checkIn)) : '--:--'
+          const checkOutTime = perf?.checkOut ? formatTimeKSA(new Date(perf.checkOut)) : '--:--'
 
           return (
             <div key={member.id} className="bg-white p-4 rounded-2xl shadow-md flex flex-col gap-3">
@@ -262,9 +259,9 @@ export default async function SupervisorDashboard() {
               const vol = member.todayVol
               const score = perf?.score || 0
               
-              // تنسيق الوقت
-              const checkInTime = perf?.checkIn ? new Date(perf.checkIn).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}) : '-'
-              const checkOutTime = perf?.checkOut ? new Date(perf.checkOut).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}) : '-'
+              // === استخدام توقيت السعودية ===
+              const checkInTime = perf?.checkIn ? formatTimeKSA(new Date(perf.checkIn)) : '-'
+              const checkOutTime = perf?.checkOut ? formatTimeKSA(new Date(perf.checkOut)) : '-'
               
               const isPresent = perf?.checkIn && !perf?.checkOut
 
