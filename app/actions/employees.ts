@@ -4,36 +4,47 @@ import { prisma } from '@/app/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import bcrypt from 'bcryptjs'
 
-// دالة إضافة موظف جديد
+// ==============================
+// 1. إضافة موظف جديد
+// ==============================
 export async function addEmployeeAction(formData: FormData) {
   const fullName = formData.get('fullName') as string
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  // التغيير هنا: استقبال departmentId بدلاً من department
   const departmentId = formData.get('departmentId') as string 
   const role = formData.get('role') as any
 
-  // التحقق من أن departmentId موجود أيضاً
+  // التحقق من الحقول الأساسية
   if (!fullName || !email || !password || !departmentId) {
     return { error: 'يرجى ملء جميع الحقول المطلوبة' }
   }
 
+  // تنظيف الإيميل
+  const cleanEmail = email.trim().toLowerCase()
+
   try {
-    const existingUser = await prisma.user.findUnique({ where: { email } })
+    // التحقق من وجود الإيميل مسبقاً
+    const existingUser = await prisma.user.findUnique({
+      where: { email: cleanEmail }
+    })
+
     if (existingUser) {
-      return { error: 'هذا البريد الإلكتروني مسجل مسبقاً' }
+      return { error: 'البريد الإلكتروني هذا مسجل بالفعل' }
     }
 
+    // تشفير كلمة المرور
     const hashedPassword = await bcrypt.hash(password, 10)
 
+    // إنشاء الموظف
     await prisma.user.create({
       data: {
         fullName,
-        email,
+        email: cleanEmail,
         password: hashedPassword,
         role: role || 'EMPLOYEE',
-        // التغيير هنا: استخدام departmentId للربط
         departmentId: departmentId, 
+        isActive: true,
+        // صورة افتراضية
         avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`,
       },
     })
@@ -42,53 +53,79 @@ export async function addEmployeeAction(formData: FormData) {
     return { success: true }
 
   } catch (error) {
-    console.error(error)
+    console.error('Add Employee Error:', error)
     return { error: 'حدث خطأ أثناء إضافة الموظف' }
   }
 }
 
+// ==============================
+// 2. تعديل بيانات الموظف
+// ==============================
 export async function editEmployeeAction(formData: FormData) {
   const id = formData.get('id') as string
   const fullName = formData.get('fullName') as string
   const email = formData.get('email') as string
+  const password = formData.get('password') as string
   const departmentId = formData.get('departmentId') as string
   const role = formData.get('role') as any
-  const isActive = formData.get('isActive') === 'on' // Checkbox handling
-  const password = formData.get('password') as string
+  const isActive = formData.get('isActive') === 'on' 
+
+  if (!id || !fullName || !email || !departmentId) {
+    return { error: 'البيانات الأساسية مطلوبة' }
+  }
+
+  const cleanEmail = email.trim().toLowerCase()
 
   try {
-    const data: any = {
+    // التحقق من أن الإيميل الجديد غير مستخدم من قبل شخص آخر
+    const existingUser = await prisma.user.findFirst({
+      where: { 
+        email: cleanEmail,
+        id: { not: id } // استثناء الموظف الحالي
+      }
+    })
+
+    if (existingUser) {
+      return { error: 'البريد الإلكتروني هذا مستخدم بالفعل لموظف آخر' }
+    }
+
+    // تجهيز البيانات للتحديث
+    const updateData: any = {
       fullName,
-      email,
+      email: cleanEmail,
       departmentId,
       role,
       isActive
     }
 
-    // تحديث كلمة المرور فقط إذا قام المستخدم بكتابة واحدة جديدة
+    // تحديث كلمة المرور (فقط إذا كتب واحدة جديدة) وتشفيرها
     if (password && password.trim() !== '') {
-      // هنا يجب تشفير كلمة المرور (سنتجاوز التشفير للتبسيط، لكن استخدم bcrypt في الواقع)
-      data.password = password 
+      const hashedPassword = await bcrypt.hash(password, 10)
+      updateData.password = hashedPassword
     }
 
     await prisma.user.update({
       where: { id },
-      data: data
+      data: updateData
     })
 
     revalidatePath('/dashboard/employees')
     return { success: true }
+
   } catch (error) {
-    return { error: 'فشل تحديث البيانات' }
+    console.error('Edit Employee Error:', error)
+    return { error: 'فشل تحديث البيانات. يرجى مراجعة المدخلات.' }
   }
 }
 
-// دالة حذف موظف
+// ==============================
+// 3. حذف موظف
+// ==============================
 export async function deleteEmployeeAction(employeeId: string) {
+  if (!employeeId) return { error: 'رقم الموظف غير صحيح' }
+
   try {
-    // حذف السجلات المرتبطة أولاً (مثل الأداء والمهام) لتجنب أخطاء Foreign Key
-    // ملاحظة: إذا كان لديك `onDelete: Cascade` في قاعدة البيانات، يكفي حذف اليوزر فقط.
-    // لكن للأمان سنحذف الأداء اليومي أولاً إذا لم يكن Cascade مفعلاً
+    // تنظيف البيانات المرتبطة يدوياً للأمان
     await prisma.dailyPerformance.deleteMany({ where: { userId: employeeId } })
     await prisma.task.deleteMany({ where: { assignedToId: employeeId } })
 
@@ -101,6 +138,6 @@ export async function deleteEmployeeAction(employeeId: string) {
     return { success: true }
   } catch (error) {
     console.error('Delete Error:', error)
-    return { error: 'فشل حذف الموظف. قد يكون لديه سجلات مرتبطة.' }
+    return { error: 'فشل حذف الموظف، قد توجد سجلات مرتبطة.' }
   }
 }
