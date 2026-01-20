@@ -43,6 +43,7 @@ model User {
   isOvertimeEnabled Boolean @default(false)
   customStartTime String?  // مثال: "08:00"
   customEndTime   String?  // مثال: "16:00"
+  assignedComplaints Complaint[] @relation("ComplaintAssignee")
 
   // العلاقات
   tasksAssigned Task[]         @relation("AssignedTo")
@@ -143,4 +144,43 @@ model Note {
   
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Complaint {
+  id          String   @id @default(uuid())
+  
+  // === الحقول الجديدة ===
+  submissionType String   // نوع الإرسال (شكوى / طلب)
+  serviceType    String   // نوع الخدمة
+  orderNumber    String?  // رقم الطلب (اختياري)
+  clientType     String   // فرد / شركة / مؤسسة
+  email          String
+  // ====================
+
+  clientName  String   // الاسم الكامل
+  phone       String   // الجوال
+  content     String?  @db.Text // التفاصيل (يمكن أن تكون فارغة إذا اكتفى بالخيارات)
+  
+  status      String   @default("PENDING")
+  adminNote   String?  @db.Text
+
+  assignedToId String?   // رقم الموظف المسؤول (اختياري في البداية)
+  assignedTo   User?     @relation("ComplaintAssignee", fields: [assignedToId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  attachments Attachment[]
+}
+
+model Attachment {
+  id          String   @id @default(uuid())
+  filePath    String   // مسار الملف
+  fileType    String   // نوع الملف (pdf, image, etc)
+  fileName    String   // اسم الملف الأصلي
+  
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
 }

@@ -15,14 +15,19 @@ const menuItems = [
   { name: 'لوحة التحكم', href: '/dashboard/supervisor', icon: LayoutDashboard, role: 'SUPERVISOR' },
   { name: 'ملفي الشخصي', href: '/dashboard/employee', icon: LayoutDashboard, role: 'EMPLOYEE' },
   
-  // 2. قوائم الإدارة
+  // 2. قوائم الإدارة (مدير ومشرف)
   { name: 'الموظفين', href: '/dashboard/employees', icon: Users, role: 'MANAGER' },
+  { name: 'شكاوي العملاء', href: '/dashboard/complaints', icon: Users, role: 'MANAGER' },
+  { name: 'شكاوي العملاء', href: '/dashboard/complaints', icon: Users, role: 'SUPERVISOR' },
   { name: 'الأقسام', href: '/dashboard/departments', icon: Building2, role: 'MANAGER' },
   
-  // 3. قوائم مشتركة
+  // 3. قوائم الموظف (الجديد)
+  { name: 'شكاوي العملاء', href: '/dashboard/my-complaints', icon: Users, role: 'EMPLOYEE' }, // <--- تمت الإضافة هنا
+
+  // 4. قوائم مشتركة
   { name: 'المهام', href: '/dashboard/tasks', icon: CheckSquare, role: 'ALL' },
   
-  // 4. بقية القوائم
+  // 5. بقية القوائم
   { name: 'التقييمات', href: '/dashboard/evaluations', icon: ClipboardList, role: 'MANAGER' },
   { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings, role: 'MANAGER' },
 ]
@@ -79,15 +84,13 @@ export default function Sidebar({ userRole, isOpen, setIsOpen }: any) {
 
           {/* 3. Navigation Items */}
           <nav className="flex-1 overflow-y-auto py-2 px-3 space-y-1 scrollbar-thin scrollbar-thumb-slate-700">
-            {filteredMenu.map((item) => {
+            {filteredMenu.map((item, index) => {
               const isActive = pathname === item.href
-              const Icon = item.icon
-              
+              // استخدام index كمفتاح فريد في حال تكرار الروابط (رغم أنه لا يفضل) أو دمج role مع href
               return (
                 <Link 
-                  key={item.href} 
+                  key={`${item.href}-${item.role}-${index}`} 
                   href={item.href}
-                  // عند النقر في الجوال، نغلق القائمة
                   onClick={() => setIsOpen(false)}
                   className={`
                     flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group
@@ -96,7 +99,7 @@ export default function Sidebar({ userRole, isOpen, setIsOpen }: any) {
                       : 'text-slate-400 hover:bg-slate-800 hover:text-white hover:translate-x-1'}
                   `}
                 >
-                  <Icon size={20} className={`${isActive ? 'text-white' : 'text-slate-500 group-hover:text-white'} transition-colors`} />
+                  <item.icon size={20} className={`${isActive ? 'text-white' : 'text-slate-500 group-hover:text-white'} transition-colors`} />
                   {item.name}
                 </Link>
               )
