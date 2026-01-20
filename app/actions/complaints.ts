@@ -5,6 +5,7 @@ import { prisma } from '@/app/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
+import { existsSync } from 'fs'
 
 export async function submitComplaintAction(formData: FormData) {
   const submissionType = formData.get('submissionType') as string
@@ -16,7 +17,7 @@ export async function submitComplaintAction(formData: FormData) {
   const email = formData.get('email') as string
   const content = formData.get('content') as string
   
-  // 1. استقبال الملفات
+  // استقبال الملفات
   const files = formData.getAll('files') as File[]
 
   if (!submissionType || !serviceType || !clientType || !clientName || !phone || !email) {
@@ -24,7 +25,7 @@ export async function submitComplaintAction(formData: FormData) {
   }
 
   try {
-    // 2. إنشاء الشكوى أولاً
+    // 1. إنشاء الشكوى في قاعدة البيانات
     const newComplaint = await prisma.complaint.create({
       data: {
         submissionType,
@@ -39,45 +40,53 @@ export async function submitComplaintAction(formData: FormData) {
       }
     })
 
-    // 3. معالجة الملفات وحفظها (إذا وجدت)
-    if (files && files.length > 0) {
-      // التأكد من وجود المجلد
+    // 2. معالجة الملفات (فقط إذا تم اختيار ملفات حقيقية)
+    // نتحقق أن الملفات موجودة وأن حجم أول ملف أكبر من 0
+    if (files && files.length > 0 && files[0].size > 0) {
+      
       const uploadDir = path.join(process.cwd(), 'public/uploads')
-      try {
+
+      // التأكد من وجود المجلد، وإذا لم يكن موجوداً يتم إنشاؤه
+      if (!existsSync(uploadDir)) {
         await mkdir(uploadDir, { recursive: true })
-      } catch (e) {
-        // المجلد موجود بالفعل
       }
 
       for (const file of files) {
-        // تجاهل الملفات الفارغة (يحدث أحياناً إذا لم يختر المستخدم شيئاً)
+        // تجاهل الملف إذا كان فارغاً
         if (file.size === 0) continue;
 
-        // إنشاء اسم فريد للملف
-        const uniqueName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`
-        const filePath = path.join(uploadDir, uniqueName)
-        
-        // تحويل الملف وحفظه
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
-        await writeFile(filePath, buffer)
+        try {
+          // إنشاء اسم فريد للملف لتجنب التكرار
+          // نستخدم replace لإزالة المسافات من الاسم
+          const uniqueName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`
+          const filePath = path.join(uploadDir, uniqueName)
+          
+          // تحويل الملف وحفظه
+          const bytes = await file.arrayBuffer()
+          const buffer = Buffer.from(bytes)
+          await writeFile(filePath, buffer)
 
-        // حفظ الرابط في قاعدة البيانات
-        await prisma.attachment.create({
-          data: {
-            filePath: `/uploads/${uniqueName}`, // المسار الذي سيستخدم في العرض
-            fileName: file.name,
-            fileType: file.type,
-            complaintId: newComplaint.id
-          }
-        })
+          // حفظ الرابط في قاعدة البيانات
+          await prisma.attachment.create({
+            data: {
+              filePath: `/uploads/${uniqueName}`,
+              fileName: file.name,
+              fileType: file.type || 'unknown',
+              complaintId: newComplaint.id
+            }
+          })
+        } catch (fileError) {
+          console.error('Error saving specific file:', file.name, fileError)
+          // نستمر في الحلقة حتى لو فشل ملف واحد
+        }
       }
     }
     
     return { success: true }
+
   } catch (error) {
-    console.error('Error submitting complaint:', error)
-    return { error: 'حدث خطأ أثناء إرسال الطلب، حاول مرة أخرى' }
+    console.error('CRITICAL ERROR SUBMITTING COMPLAINT:', error)
+    return { error: 'حدث خطأ فني أثناء المعالجة، يرجى المحاولة لاحقاً' }
   }
 }
 
