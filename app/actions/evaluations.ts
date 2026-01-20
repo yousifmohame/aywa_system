@@ -7,13 +7,14 @@ export async function saveEvaluationAction(formData: FormData) {
   const userId = formData.get('userId') as string
   const dateStr = formData.get('date') as string
   
-  // القيم المدخلة
-  const speedScore = parseInt(formData.get('speed') as string) || 0
+  // القيم التشغيلية (الحقائق)
+  const volume = parseInt(formData.get('volume') as string) || 0     // عدد الطلبات أو المكالمات
+  const timeMetric = parseInt(formData.get('timeMetric') as string) || 0 // متوسط الوقت
+
+  // القيم التقديرية (ما زالت يدوية حالياً)
   const accuracyScore = parseInt(formData.get('accuracy') as string) || 0
   const qualityScore = parseInt(formData.get('quality') as string) || 0
   const disciplineScore = parseInt(formData.get('discipline') as string) || 0
-  const volume = parseInt(formData.get('volume') as string) || 0
-  const timeMetric = parseInt(formData.get('timeMetric') as string) || 0
 
   const date = new Date(dateStr)
 
@@ -24,21 +25,39 @@ export async function saveEvaluationAction(formData: FormData) {
     })
 
     if (!user || !user.department?.evaluationSettings) {
-      return { error: 'لا توجد إعدادات تقييم' }
+      return { error: 'لا توجد إعدادات تقييم لهذا القسم، يرجى ضبطها أولاً' }
     }
 
+    const settings = user.department.evaluationSettings
     const deptName = user.department.name
     const isFulfillment = deptName.includes('تجهيز') || deptName.includes('تنفيذ')
     
-    // حساب النتيجة النهائية
-    const settings = user.department.evaluationSettings
+    // ==========================================
+    // 🚀 التحديث الجديد: حساب السرعة تلقائياً
+    // ==========================================
+    const dailyTarget = settings.dailyTarget || 50 // القيمة الافتراضية إذا لم تحدد
+    
+    // معادلة حساب السرعة: (المنجز / المستهدف) * 100
+    // نستخدم Math.min(100, ...) لكي لا تتجاوز النتيجة 100% حتى لو أنجز أكثر (يمكنك إزالتها إذا أردت بونص)
+    let calculatedSpeedScore = 0
+    if (dailyTarget > 0) {
+      calculatedSpeedScore = Math.round((volume / dailyTarget) * 100)
+    }
+    
+    // تحديد سقف للسرعة بـ 100 (اختياري)
+    const finalSpeedScore = Math.min(100, calculatedSpeedScore)
+
+    // ==========================================
+    // حساب النتيجة النهائية الموزونة
+    // ==========================================
     const finalScore = Math.round(
-      (speedScore * settings.speedWeight / 100) +
+      (finalSpeedScore * settings.speedWeight / 100) +
       (accuracyScore * settings.accuracyWeight / 100) +
       (qualityScore * settings.qualityWeight / 100) +
       (disciplineScore * settings.disciplineWeight / 100)
     )
 
+    // تحديد التقييم اللفظي
     let ratingText = 'ضعيف'
     if (finalScore >= 90) ratingText = 'ممتاز'
     else if (finalScore >= 80) ratingText = 'جيد جداً'
@@ -50,13 +69,13 @@ export async function saveEvaluationAction(formData: FormData) {
       score: finalScore,
       rating: ratingText,
       
-      // === حفظ القيم الخام (الجديد) ===
-      speedScore: speedScore,
+      // حفظ الدرجات التفصيلية
+      speedScore: finalSpeedScore, // القيمة المحسوبة آلياً
       qualityScore: qualityScore,
       disciplineScore: disciplineScore,
-      accuracyRate: accuracyScore, // الدقة لها حقل موجود مسبقاً
+      accuracyRate: accuracyScore,
 
-      // البيانات التشغيلية
+      // حفظ البيانات التشغيلية للإحصائيات
       ordersPrepared: isFulfillment ? volume : 0,
       avgPrepTime: isFulfillment ? timeMetric : 0,
       callsCount: !isFulfillment ? volume : 0,

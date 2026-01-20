@@ -19,7 +19,7 @@ enum Role {
 // 2. تعريف الأقسام
 model Department {
   id          String   @id @default(uuid())
-  name        String   @unique  // اسم القسم (خدمة العملاء، التجهيز...)
+  name        String   @unique
   description String?
   createdAt   DateTime @default(now())
 
@@ -131,6 +131,8 @@ model EvaluationSetting {
   accuracyWeight Int            @default(30)
   qualityWeight  Int            @default(20)
   disciplineWeight Int          @default(20)
+
+  dailyTarget    Int         @default(50)
 }
 
 // 7. ملاحظات المشرفين

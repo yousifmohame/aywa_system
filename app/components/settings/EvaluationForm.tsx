@@ -11,6 +11,7 @@ type Props = {
     accuracyWeight: number
     qualityWeight: number
     disciplineWeight: number
+    dailyTarget: number
   } | null
 }
 
@@ -65,6 +66,27 @@ export default function EvaluationForm({ department, settings }: Props) {
 
       <form action={handleSubmit} className="space-y-6">
         <input type="hidden" name="departmentId" value={department.id} />
+
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            🎯 الهدف اليومي المطلوب (عدد الطلبات/المكالمات)
+          </label>
+          <div className="flex items-center gap-2">
+            <input 
+              type="number" 
+              name="dailyTarget" 
+              defaultValue={settings?.dailyTarget || 50}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="مثلاً: 50"
+            />
+            <span className="text-gray-500 text-sm font-medium whitespace-nowrap">
+              عملية / يوم
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            سيتم استخدام هذا الرقم لحساب نسبة "سرعة العمل" للموظف تلقائياً.
+          </p>
+        </div>
 
         {/* Speed Slider */}
         <WeightSlider 

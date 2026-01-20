@@ -10,6 +10,8 @@ export async function updateEvaluationSettingsAction(formData: FormData) {
   const quality = parseInt(formData.get('quality') as string)
   const discipline = parseInt(formData.get('discipline') as string)
 
+  const dailyTarget = parseInt(formData.get('dailyTarget') as string) || 50
+
   // التحقق من أن المجموع 100%
   if (speed + accuracy + quality + discipline !== 100) {
     return { error: 'يجب أن يكون مجموع النسب 100% تماماً' }
@@ -22,14 +24,16 @@ export async function updateEvaluationSettingsAction(formData: FormData) {
         speedWeight: speed,
         accuracyWeight: accuracy,
         qualityWeight: quality,
-        disciplineWeight: discipline
+        disciplineWeight: discipline,
+        dailyTarget: dailyTarget
       },
       create: {
         departmentId,
         speedWeight: speed,
         accuracyWeight: accuracy,
         qualityWeight: quality,
-        disciplineWeight: discipline
+        disciplineWeight: discipline,
+        dailyTarget: dailyTarget
       }
     })
 

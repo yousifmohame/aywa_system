@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { PerformanceChart, DepartmentsChart } from '@/app/components/dashboard/ManagerCharts'
 import OvertimeList from '@/app/components/dashboard/OvertimeList'
+import Leaderboard from '@/app/components/dashboard/Leaderboard'
 
 // دالة تنسيق الأرقام
 const formatNumber = (num: number) => new Intl.NumberFormat('en-US').format(num)
@@ -290,6 +291,9 @@ export default async function ManagerDashboardPage() {
                     ))}
                 </tbody>
             </table>
+        </div>
+        <div className="lg:col-span-1">
+          <Leaderboard />
         </div>
       </div>
 
