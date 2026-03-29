@@ -1,103 +1,222 @@
-'use server'
+"use server";
 
-import { prisma } from '@/app/lib/prisma'
-import { revalidatePath } from 'next/cache'
+import { prisma } from "@/app/lib/prisma";
+import { revalidatePath } from "next/cache";
 
-export async function saveEvaluationAction(formData: FormData) {
-  const userId = formData.get('userId') as string
-  const dateStr = formData.get('date') as string
-  
-  // القيم التشغيلية (الحقائق)
-  const volume = parseInt(formData.get('volume') as string) || 0     // عدد الطلبات أو المكالمات
-  const timeMetric = parseInt(formData.get('timeMetric') as string) || 0 // متوسط الوقت
-
-  // القيم التقديرية (ما زالت يدوية حالياً)
-  const accuracyScore = parseInt(formData.get('accuracy') as string) || 0
-  const qualityScore = parseInt(formData.get('quality') as string) || 0
-  const disciplineScore = parseInt(formData.get('discipline') as string) || 0
-
-  const date = new Date(dateStr)
-
+// دالة مساعدة لتحويل الوقت (09:00) إلى دقائق لسهولة الحساب
+const timeToMinutes = (time: string | null | undefined) => {
+  if (!time) return 0;
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+// ==========================================
+// 🚀 محرك التقييم الذكي التلقائي (المتكامل مع الحضور)
+// ==========================================
+export async function runAutoEvaluationsAction(dateStr: string) {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { department: { include: { evaluationSettings: true } } }
-    })
+    const startDate = new Date(dateStr);
+    startDate.setHours(0, 0, 0, 0);
 
-    if (!user || !user.department?.evaluationSettings) {
-      return { error: 'لا توجد إعدادات تقييم لهذا القسم، يرجى ضبطها أولاً' }
-    }
+    const endDate = new Date(dateStr);
+    endDate.setHours(23, 59, 59, 999);
 
-    const settings = user.department.evaluationSettings
-    const deptName = user.department.name
-    const isFulfillment = deptName.includes('تجهيز') || deptName.includes('تنفيذ')
-    
-    // ==========================================
-    // 🚀 التحديث الجديد: حساب السرعة تلقائياً
-    // ==========================================
-    const dailyTarget = settings.dailyTarget || 50 // القيمة الافتراضية إذا لم تحدد
-    
-    // معادلة حساب السرعة: (المنجز / المستهدف) * 100
-    // نستخدم Math.min(100, ...) لكي لا تتجاوز النتيجة 100% حتى لو أنجز أكثر (يمكنك إزالتها إذا أردت بونص)
-    let calculatedSpeedScore = 0
-    if (dailyTarget > 0) {
-      calculatedSpeedScore = Math.round((volume / dailyTarget) * 100)
-    }
-    
-    // تحديد سقف للسرعة بـ 100 (اختياري)
-    const finalSpeedScore = Math.min(100, calculatedSpeedScore)
+    // 1. جلب إعدادات النظام العامة (لمعرفة وقت الحضور الرسمي وفترة السماح)
+    const systemSettings = await prisma.systemSettings.findUnique({
+      where: { id: "settings" },
+    });
+    const defaultStartTime = systemSettings?.workStartTime || "09:00";
+    const lateThreshold = systemSettings?.lateThreshold || 15; // فترة السماح بالدقائق
 
-    // ==========================================
-    // حساب النتيجة النهائية الموزونة
-    // ==========================================
-    const finalScore = Math.round(
-      (finalSpeedScore * settings.speedWeight / 100) +
-      (accuracyScore * settings.accuracyWeight / 100) +
-      (qualityScore * settings.qualityWeight / 100) +
-      (disciplineScore * settings.disciplineWeight / 100)
-    )
-
-    // تحديد التقييم اللفظي
-    let ratingText = 'ضعيف'
-    if (finalScore >= 90) ratingText = 'ممتاز'
-    else if (finalScore >= 80) ratingText = 'جيد جداً'
-    else if (finalScore >= 70) ratingText = 'جيد'
-    else if (finalScore >= 50) ratingText = 'مقبول'
-
-    // تجهيز البيانات للحفظ
-    const performanceData = {
-      score: finalScore,
-      rating: ratingText,
-      
-      // حفظ الدرجات التفصيلية
-      speedScore: finalSpeedScore, // القيمة المحسوبة آلياً
-      qualityScore: qualityScore,
-      disciplineScore: disciplineScore,
-      accuracyRate: accuracyScore,
-
-      // حفظ البيانات التشغيلية للإحصائيات
-      ordersPrepared: isFulfillment ? volume : 0,
-      avgPrepTime: isFulfillment ? timeMetric : 0,
-      callsCount: !isFulfillment ? volume : 0,
-      avgResponseTime: !isFulfillment ? timeMetric : 0,
-    }
-
-    await prisma.dailyPerformance.upsert({
-      where: {
-        userId_date: { userId, date }
+    // 2. جلب جميع الموظفين النشطين مع بياناتهم وأدائهم اليوم
+    const employees = await prisma.user.findMany({
+      where: { role: "EMPLOYEE", isActive: true },
+      include: {
+        department: { include: { evaluationSettings: true } },
+        // جلب الشكاوى والمهام
+        tasksAssigned: {
+          where: { updatedAt: { gte: startDate, lte: endDate } },
+        },
+        assignedComplaints: {
+          where: { updatedAt: { gte: startDate, lte: endDate } },
+        },
+        // جلب سجل حضور الموظف في هذا اليوم تحديداً
+        performances: {
+          where: { date: { gte: startDate, lte: endDate } },
+          take: 1,
+        },
       },
-      update: performanceData,
-      create: {
-        user: { connect: { id: userId } },
-        date: date,
-        ...performanceData
-      }
-    })
+    });
 
-    revalidatePath('/dashboard/evaluations')
-    return { success: true }
+    for (const emp of employees) {
+      const settings = emp.department?.evaluationSettings || {
+        speedWeight: 30,
+        accuracyWeight: 30,
+        qualityWeight: 20,
+        disciplineWeight: 20,
+        dailyTarget: 20,
+      };
+
+      // سجل الحضور والانصراف الحالي
+      const todayPerf = emp.performances[0];
+
+      // --- أ. حساب الأرقام التشغيلية ---
+      const solvedComplaints = emp.assignedComplaints.filter(
+        (c) => c.status === "SOLVED",
+      ).length;
+      const completedTasks = emp.tasksAssigned.filter(
+        (t) => t.status === "COMPLETED",
+      ).length;
+      const totalCompleted = solvedComplaints + completedTasks;
+      const totalAssignedToday =
+        emp.assignedComplaints.length + emp.tasksAssigned.length;
+
+      // --- ب. حساب درجات الذكاء الاصطناعي ---
+
+      // 1. السرعة
+      let speedScore = 0;
+      if (settings.dailyTarget > 0) {
+        speedScore = Math.min(
+          100,
+          Math.round((totalCompleted / settings.dailyTarget) * 100),
+        );
+      }
+
+      // 2. الجودة والدقة
+      let qualityScore = 100;
+      if (totalAssignedToday > 0) {
+        qualityScore = Math.round((totalCompleted / totalAssignedToday) * 100);
+      }
+      let accuracyScore = qualityScore;
+
+      // 3. الانضباط (الذكاء الاصطناعي للحضور والانصراف) 🔥
+      let disciplineScore = 100; // الدرجة النهائية تبدأ من 100
+      let delayMinutes = 0;
+
+      if (!todayPerf || !todayPerf.checkIn) {
+        // إذا لم يسجل حضور أصلاً (غائب)
+        disciplineScore = 0;
+      } else {
+        // إذا كان حاضراً، نحسب التأخير بناءً على موعده الخاص أو العام
+        const expectedStartTime = emp.customStartTime || defaultStartTime;
+        const [expectedHour, expectedMinute] = expectedStartTime
+          .split(":")
+          .map(Number);
+
+        // تحويل وقت حضوره الفعلي إلى ساعات ودقائق
+        const actualCheckIn = new Date(todayPerf.checkIn);
+        const actualHour = actualCheckIn.getHours();
+        const actualMinute = actualCheckIn.getMinutes();
+
+        // حساب الفرق بالدقائق
+        const expectedTotalMinutes = expectedHour * 60 + expectedMinute;
+        const actualTotalMinutes = actualHour * 60 + actualMinute;
+
+        const diffMinutes = actualTotalMinutes - expectedTotalMinutes;
+
+        // إذا تأخر أكثر من فترة السماح
+        if (diffMinutes > lateThreshold) {
+          delayMinutes = diffMinutes;
+          // معادلة الخصم: خصم درجة عن كل دقيقة تأخير (أو يمكنك تغييرها حسب سياسة شركتك)
+          disciplineScore = Math.max(0, 100 - (delayMinutes - lateThreshold));
+        }
+      }
+
+      // --- ج. حساب النتيجة النهائية המوزونة ---
+      const finalScore = Math.round(
+        (speedScore * settings.speedWeight) / 100 +
+          (accuracyScore * settings.accuracyWeight) / 100 +
+          (qualityScore * settings.qualityWeight) / 100 +
+          (disciplineScore * settings.disciplineWeight) / 100,
+      );
+
+      // --- د. التقييم اللفظي ---
+      let ratingText = "ضعيف";
+      if (finalScore >= 90) ratingText = "ممتاز";
+      else if (finalScore >= 80) ratingText = "جيد جداً";
+      else if (finalScore >= 70) ratingText = "جيد";
+      else if (finalScore > 0) ratingText = "مقبول";
+      else if (disciplineScore === 0 && totalCompleted === 0)
+        ratingText = "غائب";
+
+      const isFulfillment =
+        emp.department?.name?.includes("تجهيز") ||
+        emp.department?.name?.includes("تنفيذ");
+
+      // --- حساب الانصراف والساعات تلقائياً ---
+      const effectiveEndTimeStr = emp.customEndTime || defaultStartTime.replace('09', '17'); // افتراضي 5 مساءً
+      const [endH, endM] = effectiveEndTimeStr.split(':').map(Number);
+      
+      // إنشاء كائن تاريخ لوقت الانصراف المفترض اليوم
+      const autoCheckOutDate = new Date(startDate);
+      autoCheckOutDate.setHours(endH, endM, 0, 0);
+
+      let workHours = 0;
+      let overtimeHours = 0;
+
+      if (todayPerf && todayPerf.checkIn) {
+        const checkInDate = new Date(todayPerf.checkIn);
+        
+        // حساب مدة العمل الفعلية بالدقائق (من وقت الدخول حتى وقت انتهاء الدوام الرسمي)
+        const durationMs = autoCheckOutDate.getTime() - checkInDate.getTime();
+        const durationHours = Math.max(0, durationMs / (1000 * 60 * 60));
+
+        // حساب الدوام الرسمي (مثلاً 8 ساعات)
+        const shiftDuration = (timeToMinutes(effectiveEndTimeStr) - timeToMinutes(emp.customStartTime || defaultStartTime)) / 60;
+
+        if (emp.isOvertimeEnabled && durationHours > shiftDuration) {
+          workHours = shiftDuration;
+          overtimeHours = durationHours - shiftDuration;
+        } else {
+          workHours = Math.min(durationHours, shiftDuration);
+        }
+      }
+
+      // --- هـ. الحفظ التلقائي في قاعدة البيانات ---
+      await prisma.dailyPerformance.upsert({
+        where: {
+          userId_date: { userId: emp.id, date: startDate },
+        },
+        update: {
+          checkOut: autoCheckOutDate,
+          workHours: parseFloat(workHours.toFixed(2)),
+          overtimeHours: parseFloat(overtimeHours.toFixed(2)),
+          score: finalScore,
+          rating: ratingText,
+          speedScore,
+          qualityScore,
+          disciplineScore,
+          accuracyRate: accuracyScore,
+          delayMinutes, // حفظ دقائق التأخير التي حسبناها
+
+          ordersPrepared: isFulfillment ? totalCompleted : 0,
+          callsCount: !isFulfillment ? totalCompleted : 0,
+          solvedTickets: !isFulfillment ? solvedComplaints : 0,
+        },
+        create: {
+          userId: emp.id,
+          date: startDate,
+          score: finalScore,
+          rating: ratingText,
+          speedScore,
+          qualityScore,
+          disciplineScore,
+          accuracyRate: accuracyScore,
+          delayMinutes,
+
+          ordersPrepared: isFulfillment ? totalCompleted : 0,
+          callsCount: !isFulfillment ? totalCompleted : 0,
+          solvedTickets: !isFulfillment ? solvedComplaints : 0,
+        },
+      });
+
+      
+    }
+
+    revalidatePath("/dashboard/evaluations");
+    revalidatePath("/dashboard");
+    return { success: true, message: "تم حساب وتحديث جميع التقييمات بنجاح!" };
   } catch (error) {
-    console.error('Save Error:', error)
-    return { error: 'فشل الحفظ' }
+    console.error("Auto Evaluation Error:", error);
+    return { error: "حدث خطأ أثناء حساب التقييمات التلقائية" };
   }
 }

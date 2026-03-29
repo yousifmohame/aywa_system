@@ -1,32 +1,58 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { editEmployeeAction } from '@/app/actions/employees'
-import { X, UserCog, Loader2, Save, User, Clock } from 'lucide-react'
+import { useState } from "react";
+import { editEmployeeAction } from "@/app/actions/employees";
+import {
+  X,
+  UserCog,
+  Loader2,
+  Save,
+  User,
+  Clock,
+  MonitorSmartphone,
+} from "lucide-react";
 
-export default function EditEmployeeModal({ employee, departments }: { employee: any, departments: any[] }) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+export default function EditEmployeeModal({
+  employee,
+  departments,
+}: {
+  employee: any;
+  departments: any[];
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setIsLoading(true)
-    setError('')
+    event.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-    const formData = new FormData(event.currentTarget)
-    formData.append('id', employee.id)
+    const formData = new FormData(event.currentTarget);
+    formData.append("id", employee.id);
 
-    const result = await editEmployeeAction(formData)
+    const result = await editEmployeeAction(formData);
 
-    setIsLoading(false)
+    setIsLoading(false);
 
     if (result.error) {
-      setError(result.error)
+      setError(result.error);
     } else {
-      setIsOpen(false)
+      setIsOpen(false);
     }
   }
+
+  const systems = [
+    { id: "aywa_nazeel", name: "إيوا نزيل" },
+    { id: "nazeel_store", name: "نزيل ستور" },
+    { id: "prison_nazeel", name: "نزيل السجن" },
+    { id: "liniora", name: "لينيورا" },
+  ];
+
+  // تحويل الأنظمة المحفوظة من نص إلى مصفوفة لمعرفة ما هو محدد
+  const currentSystems = employee.allowedSystems
+    ? employee.allowedSystems.split(",")
+    : [];
 
   return (
     <>
@@ -39,18 +65,24 @@ export default function EditEmployeeModal({ employee, departments }: { employee:
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 font-[Tajawal]" dir="rtl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 font-[Tajawal]"
+          dir="rtl"
+        >
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 h-[90vh] overflow-y-auto scrollbar-hide">
-            
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
-              <h3 className="font-bold text-gray-800">تعديل بيانات {employee.fullName}</h3>
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-red-500 transition-colors">
+              <h3 className="font-bold text-gray-800">
+                تعديل بيانات {employee.fullName}
+              </h3>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-red-500 transition-colors"
+              >
                 <X size={20} />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              
               {error && (
                 <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg text-center font-bold">
                   {error}
@@ -58,61 +90,75 @@ export default function EditEmployeeModal({ employee, departments }: { employee:
               )}
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">الاسم الكامل</label>
-                <input 
-                    name="fullName" 
-                    defaultValue={employee.fullName} 
-                    required 
-                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  الاسم الكامل
+                </label>
+                <input
+                  name="fullName"
+                  defaultValue={employee.fullName}
+                  required
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">معرف الدخول (اسم أو إيميل)</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  معرف الدخول
+                </label>
                 <div className="relative">
-                    <input 
-                        type="text" 
-                        name="email" 
-                        defaultValue={employee.email || employee.username} // عرض الإيميل أو اليوزرنيم الحالي
-                        required 
-                        className="w-full px-3 py-2 pl-8 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-                        dir="ltr"
-                    />
-                    <User className="absolute left-2.5 top-2.5 text-gray-400" size={16} />
+                  <input
+                    type="text"
+                    name="email"
+                    defaultValue={employee.email || employee.username}
+                    required
+                    className="w-full px-3 py-2 pl-8 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    dir="ltr"
+                  />
+                  <User
+                    className="absolute left-2.5 top-2.5 text-gray-400"
+                    size={16}
+                  />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">كلمة المرور (اتركها فارغة للإبقاء على القديمة)</label>
-                <input 
-                    type="text" 
-                    name="password" 
-                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-                    placeholder="تغيير كلمة المرور..."
-                    dir="ltr"
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  كلمة المرور (اتركها فارغة للإبقاء على القديمة)
+                </label>
+                <input
+                  type="text"
+                  name="password"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="تغيير كلمة المرور..."
+                  dir="ltr"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">القسم</label>
-                  <select 
-                    name="departmentId" 
-                    defaultValue={employee.departmentId || ''}
-                    required 
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    القسم
+                  </label>
+                  <select
+                    name="departmentId"
+                    defaultValue={employee.departmentId || ""}
+                    required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                   >
                     <option value="">اختر القسم...</option>
-                    {departments.map(dept => (
-                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">الدور الوظيفي</label>
-                  <select 
-                    name="role" 
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    الدور الوظيفي
+                  </label>
+                  <select
+                    name="role"
                     defaultValue={employee.role}
                     className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                   >
@@ -122,44 +168,79 @@ export default function EditEmployeeModal({ employee, departments }: { employee:
                 </div>
               </div>
 
-               {/* === جديد: مواعيد العمل الخاصة === */}
-               <div className="border-t border-dashed border-gray-200 pt-4 mt-2">
+              {/* قسم الأنظمة المسموح بها للشكاوى */}
+              <div className="border-t border-dashed border-gray-200 pt-4 mt-2">
+                <h4 className="text-xs font-bold text-blue-600 mb-3 flex items-center gap-1">
+                  <MonitorSmartphone size={14} /> صلاحيات الأنظمة (للشكاوى)
+                </h4>
+                <div className="grid grid-cols-2 gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                  {systems.map((sys) => (
+                    <label
+                      key={sys.id}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        name="allowedSystems"
+                        value={sys.id}
+                        defaultChecked={currentSystems.includes(sys.id)} // تحديد المربع إذا كان مسجلاً للموظف
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                      />
+                      <span className="text-xs font-bold text-gray-700">
+                        {sys.name}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-[10px] text-gray-400 mt-2">
+                  حدد الأنظمة التي سيتمكن الموظف من رؤية الشكاوى الخاصة بها.
+                </p>
+              </div>
+
+              <div className="border-t border-dashed border-gray-200 pt-4 mt-2">
                 <h4 className="text-xs font-bold text-blue-600 mb-3 flex items-center gap-1">
                   <Clock size={14} /> مواعيد عمل خاصة (اختياري)
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 mb-1">وقت الحضور</label>
-                    <input 
-                      type="time" 
-                      name="customStartTime" 
-                      defaultValue={employee.customStartTime || ''} // القيمة الحالية
+                    <label className="block text-[10px] font-bold text-gray-500 mb-1">
+                      وقت الحضور
+                    </label>
+                    <input
+                      type="time"
+                      name="customStartTime"
+                      defaultValue={employee.customStartTime || ""}
                       className="w-full px-2 py-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 mb-1">وقت الانصراف</label>
-                    <input 
-                      type="time" 
-                      name="customEndTime" 
-                      defaultValue={employee.customEndTime || ''} // القيمة الحالية
+                    <label className="block text-[10px] font-bold text-gray-500 mb-1">
+                      وقت الانصراف
+                    </label>
+                    <input
+                      type="time"
+                      name="customEndTime"
+                      defaultValue={employee.customEndTime || ""}
                       className="w-full px-2 py-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
-                <p className="text-[10px] text-gray-400 mt-2">اتركها فارغة لتطبيق المواعيد العامة للنظام.</p>
               </div>
 
-              {/* حالة الحساب */}
               <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
-                <input 
-                    type="checkbox" 
-                    name="isActive" 
-                    id={`isActive-${employee.id}`}
-                    defaultChecked={employee.isActive}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                <input
+                  type="checkbox"
+                  name="isActive"
+                  id={`isActive-${employee.id}`}
+                  defaultChecked={employee.isActive}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
-                <label htmlFor={`isActive-${employee.id}`} className="text-sm text-gray-700 font-bold">حساب نشط</label>
+                <label
+                  htmlFor={`isActive-${employee.id}`}
+                  className="text-sm text-gray-700 font-bold"
+                >
+                  حساب نشط
+                </label>
               </div>
 
               <div className="pt-2">
@@ -168,14 +249,19 @@ export default function EditEmployeeModal({ employee, departments }: { employee:
                   disabled={isLoading}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  {isLoading ? <Loader2 size={16} className="animate-spin" /> : <><Save size={16} /> حفظ التعديلات</>}
+                  {isLoading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <>
+                      <Save size={16} /> حفظ التعديلات
+                    </>
+                  )}
                 </button>
               </div>
-
             </form>
           </div>
         </div>
       )}
     </>
-  )
+  );
 }

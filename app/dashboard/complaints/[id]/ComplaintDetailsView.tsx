@@ -6,14 +6,24 @@ import { updateComplaintStatusAction } from '@/app/actions/complaints'
 import { 
   ArrowRight, FileText, User, Phone, Wrench, 
   Paperclip, MessageSquare, CheckCircle, Save, Info, 
-  Download, Image as ImageIcon, File
+  Download, Image as ImageIcon, File, MonitorSmartphone
 } from 'lucide-react'
+
+// دالة بسيطة لتحويل الكود إلى اسم النظام بالعربي مع لون مميز
+const getSystemInfo = (systemCode: string) => {
+  switch (systemCode) {
+    case 'aywa_nazeel': return { name: 'إيوا نزيل', color: 'bg-cyan-100 text-cyan-700 border-cyan-200' };
+    case 'nazeel_store': return { name: 'نزيل ستور', color: 'bg-orange-100 text-orange-700 border-orange-200' };
+    case 'prison_nazeel': return { name: 'نزيل السجن', color: 'bg-slate-100 text-slate-700 border-slate-200' };
+    case 'liniora': return { name: 'لينيورا', color: 'bg-rose-100 text-rose-700 border-rose-200' };
+    default: return { name: 'نظام غير معروف', color: 'bg-gray-100 text-gray-700 border-gray-200' };
+  }
+}
 
 export default function ComplaintDetailsView({ complaint }: any) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   
-  // الحالة المحلية للبيانات القابلة للتعديل
   const [status, setStatus] = useState(complaint.status)
   const [note, setNote] = useState(complaint.adminNote || '')
 
@@ -30,7 +40,6 @@ export default function ComplaintDetailsView({ complaint }: any) {
     }
   }
 
-  // تنسيق التاريخ والوقت
   const dateObj = new Date(complaint.createdAt)
   const dateStr = dateObj.toLocaleDateString('en-CA')
   const timeStr = dateObj.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
@@ -52,6 +61,8 @@ export default function ComplaintDetailsView({ complaint }: any) {
     return 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
   }
 
+  const systemInfo = getSystemInfo(complaint.sourceSystem);
+
   return (
     <main className="flex-1 p-3 overflow-y-auto font-[Tajawal]" dir="rtl">
       <div className="space-y-3 max-w-2xl mx-auto">
@@ -69,23 +80,30 @@ export default function ComplaintDetailsView({ complaint }: any) {
               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                 <FileText className="text-blue-600" size={16} />
               </div>
-              <div>
+              <div className="text-left">
                 <h1 className="text-sm font-bold text-gray-800">تفاصيل الشكوى</h1>
-                <p className="text-[10px] text-gray-500 font-mono">#{complaint.orderNumber || 'N/A'}</p>
+                <p className="text-[10px] text-gray-500 font-mono">#{complaint.orderNumber || 'بدون رقم طلب'}</p>
               </div>
             </div>
+          </div>
+          
+          {/* شارة النظام المصدر */}
+          <div className="mt-3 flex items-center gap-2 border-t border-gray-50 pt-3">
+             <span className="text-[11px] font-bold text-gray-500">مصدر البلاغ:</span>
+             <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${systemInfo.color} flex items-center gap-1`}>
+                <MonitorSmartphone size={12} /> {systemInfo.name}
+             </span>
           </div>
         </div>
 
         {/* 1. Client Info */}
         <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 space-y-3">
           <h2 className="text-xs font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
-            <User size={14} className="text-blue-600" />
-            معلومات العميل
+            <User size={14} className="text-blue-600" /> معلومات العميل
           </h2>
           <div className="space-y-2">
             <div>
-              <label className="block text-[10px] text-gray-600 mb-1 font-medium">اسم العميل</label>
+              <label className="block text-[10px] text-gray-600 mb-1 font-medium">اسم العميل ({complaint.clientType})</label>
               <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
                 <User size={12} className="text-gray-400" />
                 <span className="text-xs text-gray-800">{complaint.clientName}</span>
@@ -112,21 +130,14 @@ export default function ComplaintDetailsView({ complaint }: any) {
         {/* 2. Complaint Details */}
         <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 space-y-3">
           <h2 className="text-xs font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
-            <FileText size={14} className="text-blue-600" />
-            تفاصيل الشكوى
+            <FileText size={14} className="text-blue-600" /> تفاصيل الشكوى
           </h2>
           <div className="space-y-2">
             <div>
-              <label className="block text-[10px] text-gray-600 mb-1 font-medium">نوع البلاغ</label>
-              <div className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
-                <span className="text-xs text-gray-800">{complaint.submissionType}</span>
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] text-gray-600 mb-1 font-medium">نوع الخدمة</label>
+              <label className="block text-[10px] text-gray-600 mb-1 font-medium">نوع البلاغ / الخدمة</label>
               <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
                 <Wrench size={12} className="text-gray-400" />
-                <span className="text-xs text-gray-800">{complaint.serviceType}</span>
+                <span className="text-xs text-gray-800">{complaint.submissionType} - {complaint.serviceType}</span>
               </div>
             </div>
             <div>
@@ -154,11 +165,10 @@ export default function ComplaintDetailsView({ complaint }: any) {
           </div>
         </div>
 
-        {/* 3. Attachments (Updated Section) */}
+        {/* 3. Attachments */}
         <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 space-y-3">
           <h2 className="text-xs font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
-            <Paperclip size={14} className="text-blue-600" />
-            المرفقات ({complaint.attachments ? complaint.attachments.length : 0})
+            <Paperclip size={14} className="text-blue-600" /> المرفقات ({complaint.attachments ? complaint.attachments.length : 0})
           </h2>
           
           {complaint.attachments && complaint.attachments.length > 0 ? (
@@ -166,8 +176,7 @@ export default function ComplaintDetailsView({ complaint }: any) {
               {complaint.attachments.map((file: any) => (
                 <div key={file.id} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    {/* اختيار الأيقونة حسب نوع الملف */}
-                    {file.fileType.includes('image') ? (
+                    {file.fileType?.includes('image') ? (
                       <ImageIcon size={16} className="text-purple-500" />
                     ) : (
                       <File size={16} className="text-blue-500" />
@@ -177,14 +186,12 @@ export default function ComplaintDetailsView({ complaint }: any) {
                       <span className="text-xs font-bold text-gray-700 truncate block max-w-[200px]" title={file.fileName}>
                         {file.fileName}
                       </span>
-                      <span className="text-[9px] text-gray-400">
-                        {new Date(file.createdAt).toLocaleDateString()}
-                      </span>
                     </div>
                   </div>
 
+                  {/* تم تحديث الرابط هنا ليقرأ من file.fileUrl الخاص بكلاوديناري */}
                   <a 
-                    href={file.filePath} 
+                    href={file.fileUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-white border border-blue-200 px-2 py-1.5 rounded hover:bg-blue-50 transition-colors"
@@ -204,8 +211,7 @@ export default function ComplaintDetailsView({ complaint }: any) {
         {/* 4. Employee Notes */}
         <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 space-y-3">
           <h2 className="text-xs font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
-            <MessageSquare size={14} className="text-blue-600" />
-            ملاحظات الموظف / الحل
+            <MessageSquare size={14} className="text-blue-600" /> ملاحظات الموظف / الحل
           </h2>
           <textarea 
             placeholder="أضف ملاحظاتك أو تفاصيل الحل هنا..." 
@@ -219,8 +225,7 @@ export default function ComplaintDetailsView({ complaint }: any) {
         {/* 5. Status Actions */}
         <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 space-y-3">
           <h2 className="text-xs font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
-            <CheckCircle size={14} className="text-blue-600" />
-            حالة البلاغ
+            <CheckCircle size={14} className="text-blue-600" /> حالة البلاغ
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {statuses.map((s) => (
@@ -241,23 +246,17 @@ export default function ComplaintDetailsView({ complaint }: any) {
           disabled={loading}
           className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {loading ? (
-             'جاري الحفظ...'
-          ) : (
-            <>
-              <Save size={18} /> حفظ التحديثات
-            </>
-          )}
+          {loading ? 'جاري الحفظ...' : <><Save size={18} /> حفظ التحديثات</>}
         </button>
 
         {/* Alert Footer */}
-        <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+        <div className="bg-blue-50 rounded-lg p-3 border border-blue-100 mb-6">
           <div className="flex items-start gap-2">
             <Info size={14} className="text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
               <h3 className="text-xs font-bold text-blue-900 mb-1">تنبيه</h3>
               <p className="text-[10px] text-blue-700 leading-relaxed">
-                عند تحديث حالة الشكوى، سيتم حفظ الملاحظات في النظام. يرجى التأكد من كتابة الحل بشكل واضح قبل تغيير الحالة إلى "تم الحل".
+                تأكد من كتابة الحل بشكل واضح قبل تغيير الحالة إلى "تم الحل".
               </p>
             </div>
           </div>

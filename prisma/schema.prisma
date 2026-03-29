@@ -24,116 +24,113 @@ model Department {
   createdAt   DateTime @default(now())
 
   // العلاقات
-  employees   User[]
+  employees          User[]
   evaluationSettings EvaluationSetting?
 }
 
 // 3. جدول الموظفين (User)
 model User {
-  id           String         @id @default(uuid())
-  email        String         @unique
-  password     String         // سيتم تشفيرها لاحقاً
-  fullName     String
-  role         Role           @default(EMPLOYEE)
-  departmentId String?      // أصبح معرفاً وليس اسماً
-  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  avatarUrl    String?
-  isActive     Boolean        @default(true)
-  createdAt    DateTime       @default(now())
-  isOvertimeEnabled Boolean @default(false)
-  customStartTime String?  // مثال: "08:00"
-  customEndTime   String?  // مثال: "16:00"
+  id                 String      @id @default(uuid())
+  email              String      @unique
+  password           String
+  fullName           String
+  role               Role        @default(EMPLOYEE)
+  departmentId       String?
+  department         Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  avatarUrl          String?
+  isActive           Boolean     @default(true)
+  createdAt          DateTime    @default(now())
+  isOvertimeEnabled  Boolean     @default(false)
+  customStartTime    String?
+  customEndTime      String?
   assignedComplaints Complaint[] @relation("ComplaintAssignee")
 
   // العلاقات
-  tasksAssigned Task[]         @relation("AssignedTo")
-  performances  DailyPerformance[]
-  notes         Note[]
-  badges    UserBadge[]
+  tasksAssigned  Task[]             @relation("AssignedTo")
+  performances   DailyPerformance[]
+  notes          Note[]
+  badges         UserBadge[]
+  allowedSystems String?
 }
 
 model SystemSettings {
-  id              String @id @default("settings") // صف واحد فقط
-  workStartTime   String @default("07:00") // وقت الحضور الرسمي
-  workEndTime     String @default("17:00") // وقت الانصراف الرسمي
-  lateThreshold   Int    @default(15)      // فترة سماح بالدقائق
+  id            String @id @default("settings")
+  workStartTime String @default("07:00")
+  workEndTime   String @default("17:00")
+  lateThreshold Int    @default(15)
 }
 
-// 4. جدول الأداء اليومي (يجمع بيانات القسمين)
+// 4. جدول الأداء اليومي
 model DailyPerformance {
-  id        String   @id @default(uuid())
-  date      DateTime @default(now())
-  delayMinutes    Int      @default(0) // عدد دقائق التأخير
-  // علاقة مع الموظف
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id           String   @id @default(uuid())
+  date         DateTime @default(now())
+  delayMinutes Int      @default(0)
 
-  // بيانات عامة
-  score     Int      // النتيجة النهائية لليوم (0-100)
-  rating    String   // Excellent, Good, etc.
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  // بيانات خاصة بخدمة العملاء (يمكن أن تكون null إذا كان الموظف تجهيز طلبات)
-  callsCount    Int?    @default(0)
-  solvedTickets Int?    @default(0)
-  pendingTickets Int?   @default(0)
-  avgResponseTime Int?  // بالثواني
-  workHours      Float?   @default(0) // ساعات العمل العادية
-  overtimeHours  Float?   @default(0)
+  score  Int
+  rating String
 
-  speedScore      Int?    @default(0)
-  qualityScore    Int?    @default(0)
-  disciplineScore Int?    @default(0)
+  callsCount      Int?   @default(0)
+  solvedTickets   Int?   @default(0)
+  pendingTickets  Int?   @default(0)
+  avgResponseTime Int?
+  workHours       Float? @default(0)
+  overtimeHours   Float? @default(0)
 
-  checkIn     DateTime?   // وقت الدخول
-  checkOut    DateTime?   // وقت الخروج
+  speedScore      Int? @default(0)
+  qualityScore    Int? @default(0)
+  disciplineScore Int? @default(0)
 
-  // بيانات خاصة بقسم تجهيز الطلبات
-  ordersPrepared  Int?  @default(0)
-  accuracyRate    Int?  @default(100) // نسبة مئوية
-  returnedOrders  Int?  @default(0)   // أخطاء الموظف
-  avgPrepTime     Int?  // بالدقائق
+  checkIn  DateTime?
+  checkOut DateTime?
 
-  @@unique([userId, date]) // منع تكرار تقييم لنفس الموظف في نفس اليوم
+  ordersPrepared Int? @default(0)
+  accuracyRate   Int? @default(100)
+  returnedOrders Int? @default(0)
+  avgPrepTime    Int?
+
+  @@unique([userId, date])
 }
 
 model UserBadge {
   id        String   @id @default(uuid())
-  badgeType String   // نوع الوسام (STAR, TROPHY, FAST, etc.)
-  note      String?  // ملاحظة من المشرف (سبب الإهداء)
+  badgeType String
+  note      String?
   createdAt DateTime @default(now())
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 // 5. جدول المهام (Tasks)
 model Task {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
-  description String?  @db.Text
-  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  description String?   @db.Text
+  status      String    @default("PENDING")
   dueDate     DateTime?
-  
+
   assignedToId String
   assignedTo   User   @relation("AssignedTo", fields: [assignedToId], references: [id])
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 }
 
-// 6. جدول إعدادات التقييم (Evaluation Settings)
-// لتخزين النسب التي يغيرها المدير (مثلاً السرعة 30%)
+// 6. جدول إعدادات التقييم 
 model EvaluationSetting {
-  id             String         @id @default(uuid())
-  departmentId   String     @unique
+  id           String      @id @default(uuid())
+  departmentId String      @unique
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  
-  // أوزان التقييم (مجموعها يجب أن يكون 100)
-  speedWeight    Int            @default(30)
-  accuracyWeight Int            @default(30)
-  qualityWeight  Int            @default(20)
-  disciplineWeight Int          @default(20)
 
-  dailyTarget    Int         @default(50)
+  speedWeight      Int @default(30)
+  accuracyWeight   Int @default(30)
+  qualityWeight    Int @default(20)
+  disciplineWeight Int @default(20)
+
+  dailyTarget Int @default(50)
 }
 
 // 7. ملاحظات المشرفين
@@ -141,46 +138,47 @@ model Note {
   id        String   @id @default(uuid())
   content   String
   createdAt DateTime @default(now())
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Complaint {
-  id          String   @id @default(uuid())
-  
-  // === الحقول الجديدة ===
-  submissionType String   // نوع الإرسال (شكوى / طلب)
-  serviceType    String   // نوع الخدمة
-  orderNumber    String?  // رقم الطلب (اختياري)
-  clientType     String   // فرد / شركة / مؤسسة
+  id String @id @default(uuid())
+
+  submissionType String
+  serviceType    String
+  orderNumber    String?
+  clientType     String
   email          String
-  // ====================
 
-  clientName  String   // الاسم الكامل
-  phone       String   // الجوال
-  content     String?  @db.Text // التفاصيل (يمكن أن تكون فارغة إذا اكتفى بالخيارات)
-  
-  status      String   @default("PENDING")
-  adminNote   String?  @db.Text
+  clientName String
+  phone      String
+  content    String? @db.Text
 
-  assignedToId String?   // رقم الموظف المسؤول (اختياري في البداية)
-  assignedTo   User?     @relation("ComplaintAssignee", fields: [assignedToId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status    String  @default("PENDING")
+  adminNote String? @db.Text
+
+  assignedToId String?
+  assignedTo   User?   @relation("ComplaintAssignee", fields: [assignedToId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sourceSystem String?
 
   attachments Attachment[]
 }
 
 model Attachment {
-  id          String   @id @default(uuid())
-  filePath    String   // مسار الملف
-  fileType    String   // نوع الملف (pdf, image, etc)
-  fileName    String   // اسم الملف الأصلي
-  
+  id       String  @id @default(uuid())
+  filePath    String?  // أعد هذا السطر مؤقتاً
+  fileUrl  String?
+  fileType String?
+  fileName String?
+
   complaintId String
   complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
+
+  createdAt DateTime @default(now())
 }

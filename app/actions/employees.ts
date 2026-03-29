@@ -1,41 +1,46 @@
-'use server'
+"use server";
 
-import { prisma } from '@/app/lib/prisma'
-import { revalidatePath } from 'next/cache'
-import bcrypt from 'bcryptjs'
+import { prisma } from "@/app/lib/prisma";
+import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 
 // ==============================
 // 1. إضافة موظف جديد
 // ==============================
 export async function addEmployeeAction(formData: FormData) {
-  const fullName = formData.get('fullName') as string
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const departmentId = formData.get('departmentId') as string 
-  const role = formData.get('role') as any
-  const customStartTime = formData.get('customStartTime') as string
-  const customEndTime = formData.get('customEndTime') as string
+  const fullName = formData.get("fullName") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const departmentId = formData.get("departmentId") as string;
+  const role = formData.get("role") as any;
+  const customStartTime = formData.get("customStartTime") as string;
+  const customEndTime = formData.get("customEndTime") as string;
+
+  // استخراج الأنظمة كـ Array ثم دمجها كنص
+  const allowedSystemsArray = formData.getAll("allowedSystems") as string[];
+  const allowedSystems =
+    allowedSystemsArray.length > 0 ? allowedSystemsArray.join(",") : null;
 
   // التحقق من الحقول الأساسية
   if (!fullName || !email || !password || !departmentId) {
-    return { error: 'يرجى ملء جميع الحقول المطلوبة' }
+    return { error: "يرجى ملء جميع الحقول المطلوبة" };
   }
 
   // تنظيف الإيميل
-  const cleanEmail = email.trim().toLowerCase()
+  const cleanEmail = email.trim().toLowerCase();
 
   try {
     // التحقق من وجود الإيميل مسبقاً
     const existingUser = await prisma.user.findUnique({
-      where: { email: cleanEmail }
-    })
+      where: { email: cleanEmail },
+    });
 
     if (existingUser) {
-      return { error: 'البريد الإلكتروني هذا مسجل بالفعل' }
+      return { error: "البريد الإلكتروني هذا مسجل بالفعل" };
     }
 
     // تشفير كلمة المرور
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // إنشاء الموظف
     await prisma.user.create({
@@ -43,22 +48,22 @@ export async function addEmployeeAction(formData: FormData) {
         fullName,
         email: cleanEmail,
         password: hashedPassword,
-        role: role || 'EMPLOYEE',
-        departmentId: departmentId, 
+        role: role || "EMPLOYEE",
+        departmentId: departmentId,
         customStartTime: customStartTime || null,
         customEndTime: customEndTime || null,
+        allowedSystems, // حفظ صلاحيات الأنظمة هنا
         isActive: true,
         // صورة افتراضية
         avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`,
       },
-    })
+    });
 
-    revalidatePath('/dashboard/employees')
-    return { success: true }
-
+    revalidatePath("/dashboard/employees");
+    return { success: true };
   } catch (error) {
-    console.error('Add Employee Error:', error)
-    return { error: 'حدث خطأ أثناء إضافة الموظف' }
+    console.error("Add Employee Error:", error);
+    return { error: "حدث خطأ أثناء إضافة الموظف" };
   }
 }
 
@@ -66,33 +71,38 @@ export async function addEmployeeAction(formData: FormData) {
 // 2. تعديل بيانات الموظف
 // ==============================
 export async function editEmployeeAction(formData: FormData) {
-  const id = formData.get('id') as string
-  const fullName = formData.get('fullName') as string
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const departmentId = formData.get('departmentId') as string
-  const role = formData.get('role') as any
-  const isActive = formData.get('isActive') === 'on' 
-  const customStartTime = formData.get('customStartTime') as string
-  const customEndTime = formData.get('customEndTime') as string
+  const id = formData.get("id") as string;
+  const fullName = formData.get("fullName") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const departmentId = formData.get("departmentId") as string;
+  const role = formData.get("role") as any;
+  const isActive = formData.get("isActive") === "on";
+  const customStartTime = formData.get("customStartTime") as string;
+  const customEndTime = formData.get("customEndTime") as string;
+
+  // استخراج الأنظمة كـ Array ثم دمجها كنص
+  const allowedSystemsArray = formData.getAll("allowedSystems") as string[];
+  const allowedSystems =
+    allowedSystemsArray.length > 0 ? allowedSystemsArray.join(",") : null;
 
   if (!id || !fullName || !email || !departmentId) {
-    return { error: 'البيانات الأساسية مطلوبة' }
+    return { error: "البيانات الأساسية مطلوبة" };
   }
 
-  const cleanEmail = email.trim().toLowerCase()
+  const cleanEmail = email.trim().toLowerCase();
 
   try {
     // التحقق من أن الإيميل الجديد غير مستخدم من قبل شخص آخر
     const existingUser = await prisma.user.findFirst({
-      where: { 
+      where: {
         email: cleanEmail,
-        id: { not: id } // استثناء الموظف الحالي
-      }
-    })
+        id: { not: id }, // استثناء الموظف الحالي
+      },
+    });
 
     if (existingUser) {
-      return { error: 'البريد الإلكتروني هذا مستخدم بالفعل لموظف آخر' }
+      return { error: "البريد الإلكتروني هذا مستخدم بالفعل لموظف آخر" };
     }
 
     // تجهيز البيانات للتحديث
@@ -104,25 +114,25 @@ export async function editEmployeeAction(formData: FormData) {
       isActive,
       customStartTime: customStartTime || null,
       customEndTime: customEndTime || null,
-    }
+      allowedSystems, // تحديث صلاحيات الأنظمة هنا
+    };
 
     // تحديث كلمة المرور (فقط إذا كتب واحدة جديدة) وتشفيرها
-    if (password && password.trim() !== '') {
-      const hashedPassword = await bcrypt.hash(password, 10)
-      updateData.password = hashedPassword
+    if (password && password.trim() !== "") {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
     }
 
     await prisma.user.update({
       where: { id },
-      data: updateData
-    })
+      data: updateData,
+    });
 
-    revalidatePath('/dashboard/employees')
-    return { success: true }
-
+    revalidatePath("/dashboard/employees");
+    return { success: true };
   } catch (error) {
-    console.error('Edit Employee Error:', error)
-    return { error: 'فشل تحديث البيانات. يرجى مراجعة المدخلات.' }
+    console.error("Edit Employee Error:", error);
+    return { error: "فشل تحديث البيانات. يرجى مراجعة المدخلات." };
   }
 }
 
@@ -130,22 +140,22 @@ export async function editEmployeeAction(formData: FormData) {
 // 3. حذف موظف
 // ==============================
 export async function deleteEmployeeAction(employeeId: string) {
-  if (!employeeId) return { error: 'رقم الموظف غير صحيح' }
+  if (!employeeId) return { error: "رقم الموظف غير صحيح" };
 
   try {
     // تنظيف البيانات المرتبطة يدوياً للأمان
-    await prisma.dailyPerformance.deleteMany({ where: { userId: employeeId } })
-    await prisma.task.deleteMany({ where: { assignedToId: employeeId } })
+    await prisma.dailyPerformance.deleteMany({ where: { userId: employeeId } });
+    await prisma.task.deleteMany({ where: { assignedToId: employeeId } });
 
     // حذف الموظف
     await prisma.user.delete({
-      where: { id: employeeId }
-    })
+      where: { id: employeeId },
+    });
 
-    revalidatePath('/dashboard/employees')
-    return { success: true }
+    revalidatePath("/dashboard/employees");
+    return { success: true };
   } catch (error) {
-    console.error('Delete Error:', error)
-    return { error: 'فشل حذف الموظف، قد توجد سجلات مرتبطة.' }
+    console.error("Delete Error:", error);
+    return { error: "فشل حذف الموظف، قد توجد سجلات مرتبطة." };
   }
 }
