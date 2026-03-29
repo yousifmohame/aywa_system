@@ -57,7 +57,7 @@ export async function createTaskAction(formData: FormData) {
       `;
 
       await resend.emails.send({
-        from: 'Aywa System Tasks <onboarding@resend.dev>', // غيره لاحقاً
+        from: 'Aywa System Tasks <aywa@aywasystem.online>', // غيره لاحقاً
         to: newTask.assignedTo.email,
         subject: `مهمة جديدة: ${title} 📋`,
         html: emailHtml,

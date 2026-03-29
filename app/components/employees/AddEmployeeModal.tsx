@@ -31,7 +31,6 @@ export default function AddEmployeeModal({
     }
   }
 
-  // قائمة الأنظمة المتاحة
   const systems = [
     { id: "aywa_nazeel", name: "إيوا نزيل" },
     { id: "nazeel_store", name: "نزيل ستور" },
@@ -43,87 +42,95 @@ export default function AddEmployeeModal({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold transition-colors"
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition"
       >
         <Plus size={16} /> إضافة موظف
       </button>
 
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 font-[Tajawal]"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-[Tajawal]"
           dir="rtl"
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 h-[90vh] overflow-y-auto scrollbar-hide">
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
-              <h3 className="font-bold text-gray-800">تسجيل موظف جديد</h3>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+            {/* HEADER */}
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 z-10">
+              <h3 className="font-bold text-gray-900 text-sm">
+                تسجيل موظف جديد
+              </h3>
+
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-red-500 transition-colors"
+                className="text-gray-400 hover:text-red-500 transition"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              {/* ERROR */}
               {error && (
-                <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg text-center font-bold">
+                <div className="p-3 bg-red-50 text-red-700 text-xs rounded-lg text-center font-semibold border border-red-100">
                   {error}
                 </div>
               )}
 
+              {/* NAME */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-gray-800 mb-1">
                   الاسم الكامل
                 </label>
                 <input
                   name="fullName"
                   required
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                 />
               </div>
 
+              {/* EMAIL */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  معرف الدخول (اسم أو إيميل)
+                <label className="block text-xs font-semibold text-gray-800 mb-1">
+                  معرف الدخول
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     name="email"
                     required
-                    className="w-full px-3 py-2 pl-8 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full px-3 py-2.5 pl-9 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                     dir="ltr"
-                    autoComplete="off"
                   />
                   <User
-                    className="absolute left-2.5 top-2.5 text-gray-400"
+                    className="absolute left-3 top-2.5 text-gray-400"
                     size={16}
                   />
                 </div>
               </div>
 
+              {/* PASSWORD */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-gray-800 mb-1">
                   كلمة المرور
                 </label>
                 <input
                   type="password"
                   name="password"
                   required
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                   dir="ltr"
                 />
               </div>
 
+              {/* DEPARTMENT + ROLE */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-800 mb-1">
                     القسم
                   </label>
                   <select
                     name="departmentId"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                   >
                     <option value="">اختر القسم...</option>
                     {departments.map((dept) => (
@@ -133,13 +140,14 @@ export default function AddEmployeeModal({
                     ))}
                   </select>
                 </div>
+
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    الدور الوظيفي
+                  <label className="block text-xs font-semibold text-gray-800 mb-1">
+                    الدور
                   </label>
                   <select
                     name="role"
-                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                   >
                     <option value="EMPLOYEE">موظف</option>
                     <option value="SUPERVISOR">مشرف</option>
@@ -148,11 +156,12 @@ export default function AddEmployeeModal({
                 </div>
               </div>
 
-              {/* قسم الأنظمة المسموح بها للشكاوى */}
-              <div className="border-t border-dashed border-gray-200 pt-4 mt-2">
-                <h4 className="text-xs font-bold text-blue-600 mb-3 flex items-center gap-1">
-                  <MonitorSmartphone size={14} /> صلاحيات الأنظمة (للشكاوى)
+              {/* SYSTEMS */}
+              <div className="border-t border-dashed border-gray-200 pt-4">
+                <h4 className="text-xs font-semibold text-blue-700 mb-3 flex items-center gap-1">
+                  <MonitorSmartphone size={14} /> صلاحيات الأنظمة
                 </h4>
+
                 <div className="grid grid-cols-2 gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
                   {systems.map((sys) => (
                     <label
@@ -163,60 +172,52 @@ export default function AddEmployeeModal({
                         type="checkbox"
                         name="allowedSystems"
                         value={sys.id}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                       />
-                      <span className="text-xs font-bold text-gray-700">
+                      <span className="text-xs font-semibold text-gray-700">
                         {sys.name}
                       </span>
                     </label>
                   ))}
                 </div>
+
                 <p className="text-[10px] text-gray-400 mt-2">
-                  حدد الأنظمة التي سيتمكن الموظف من رؤية الشكاوى الخاصة بها.
+                  تحديد الأنظمة التي يمكن للموظف الوصول إليها.
                 </p>
               </div>
 
-              <div className="border-t border-dashed border-gray-200 pt-4 mt-2">
-                <h4 className="text-xs font-bold text-blue-600 mb-3 flex items-center gap-1">
-                  <Clock size={14} /> مواعيد عمل خاصة (اختياري)
+              {/* TIME */}
+              <div className="border-t border-dashed border-gray-200 pt-4">
+                <h4 className="text-xs font-semibold text-blue-700 mb-3 flex items-center gap-1">
+                  <Clock size={14} /> مواعيد العمل (اختياري)
                 </h4>
+
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 mb-1">
-                      وقت الحضور
-                    </label>
-                    <input
-                      type="time"
-                      name="customStartTime"
-                      className="w-full px-2 py-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 mb-1">
-                      وقت الانصراف
-                    </label>
-                    <input
-                      type="time"
-                      name="customEndTime"
-                      className="w-full px-2 py-2 border rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                  <input
+                    type="time"
+                    name="customStartTime"
+                    className="w-full px-2 py-2 text-blue-700 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                  <input
+                    type="time"
+                    name="customEndTime"
+                    className="w-full px-2 py-2 text-blue-700 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
                 </div>
               </div>
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-[#0f172a] hover:bg-blue-900 text-white font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  {isLoading ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    "حفظ البيانات"
-                  )}
-                </button>
-              </div>
+              {/* BUTTON */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-70"
+              >
+                {isLoading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  "حفظ البيانات"
+                )}
+              </button>
             </form>
           </div>
         </div>

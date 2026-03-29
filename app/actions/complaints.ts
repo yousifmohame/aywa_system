@@ -245,7 +245,7 @@ export async function updateComplaintStatusAction(
 
       // إرسال الإيميل
       await resend.emails.send({
-        from: "Support <onboarding@resend.dev>", // استبدله بإيميل شركتك لاحقاً
+        from: "Support <aywa@aywasystem.online>", // استبدله بإيميل شركتك لاحقاً
         to: existingComplaint.email,
         subject: `${statusTitle} - ${systemName}`,
         html: emailHtml,
@@ -308,7 +308,7 @@ export async function assignComplaintAction(complaintId: string, employeeId: str
       `;
 
       await resend.emails.send({
-        from: 'Aywa System <onboarding@resend.dev>', // غيره لاحقاً
+        from: 'Aywa System <aywa@aywasystem.online>', // غيره لاحقاً
         to: updatedComplaint.assignedTo.email,
         subject: `تنبيه: شكوى جديدة مسندة إليك 🔔`,
         html: emailHtml,

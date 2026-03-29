@@ -7,7 +7,6 @@ import {
   Upload,
   CheckCircle,
   AlertCircle,
-  FileText,
   Sparkles,
 } from "lucide-react";
 
@@ -36,23 +35,24 @@ export default function LinioraComplaintPage() {
 
   if (result?.success) {
     return (
-      <div
-        className="min-h-screen bg-gray-50 flex items-center justify-center p-4"
-        dir="rtl"
-      >
-        <div className="bg-white p-10 rounded-2xl shadow-sm border-t-4 border-t-rose-500 max-w-lg w-full text-center space-y-6">
-          <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4" dir="rtl">
+        <div className="bg-white p-10 rounded-2xl shadow-md border-t-4 border-t-rose-500 max-w-lg w-full text-center space-y-6">
+
+          <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={40} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">
+
+          <h2 className="text-2xl font-bold text-gray-900">
             تم استلام طلبك بنجاح
           </h2>
-          <p className="text-gray-600 leading-relaxed">
-            شكراً لاختيارك لينيورا. سيتم مراجعة طلبك والرد عليك في أقرب وقت.
+
+          <p className="text-gray-600 text-sm leading-relaxed">
+            شكراً لاختيارك لينيورا. سيتم مراجعة طلبك والتواصل معك في أقرب وقت.
           </p>
+
           <button
             onClick={() => window.location.reload()}
-            className="w-full bg-rose-500 text-white font-bold py-3.5 rounded-lg hover:bg-rose-600 transition-colors"
+            className="w-full bg-rose-600 text-white font-semibold py-3.5 rounded-lg hover:bg-rose-700 transition"
           >
             إرسال طلب جديد
           </button>
@@ -62,202 +62,180 @@ export default function LinioraComplaintPage() {
   }
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-b from-rose-50 to-gray-50 py-12 px-4 sm:px-6 lg:px-8"
-      dir="rtl"
-    >
+    <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-gray-50 py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
       <div className="max-w-3xl mx-auto">
+
+        {/* HEADER */}
         <div className="text-center mb-10">
-          <Sparkles className="mx-auto text-rose-500 mb-4" size={56} />
-          <h1 className="text-3xl font-bold text-gray-800">تواصل مع لينيورا</h1>
-          <p className="text-gray-500 mt-2">
+          <Sparkles className="mx-auto text-rose-600 mb-4" size={56} />
+
+          <h1 className="text-3xl font-bold text-gray-900">
+            تواصل مع لينيورا
+          </h1>
+
+          <p className="text-gray-500 mt-2 text-sm">
             رضاؤكم غايتنا، يسعدنا تواصلكم معنا
           </p>
         </div>
 
         <form
           action={handleSubmit}
-          className="bg-white rounded-3xl shadow-lg border-t-4 border-t-rose-500 p-8 sm:p-10 space-y-6"
+          className="bg-white rounded-3xl shadow-xl border border-gray-100 border-t-4 border-t-rose-500 p-8 sm:p-10 space-y-6"
         >
+
           {result?.error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2 text-sm font-medium">
+            <div className="bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-2 text-sm font-medium border border-red-100">
               <AlertCircle size={18} /> {result.error}
             </div>
           )}
 
           <input type="hidden" name="sourceSystem" value="liniora" />
 
+          {/* SELECTS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 نوع الطلب <span className="text-red-500">*</span>
               </label>
+
               <div className="relative">
-                <select
-                  name="submissionType"
-                  required
-                  className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-                >
+                <select name="submissionType" required className="w-full appearance-none bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 transition">
                   <option value="">--تحديد--</option>
                   <option value="شكوى">شكوى</option>
                   <option value="طلب">طلب</option>
                 </select>
-                <ChevronDown
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  size={18}
-                />
+
+                <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               </div>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 الخدمة <span className="text-red-500">*</span>
               </label>
+
               <div className="relative">
-                <select
-                  name="serviceType"
-                  required
-                  className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-                >
+                <select name="serviceType" required className="w-full appearance-none bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 transition">
                   <option value="">--تحديد--</option>
-                  <option value="لم يتم استلام الطلب">
-                    لم يتم استلام الطلب
-                  </option>
-                  <option value="تم استلام الطلب ناقص">
-                    تم استلام الطلب ناقص
-                  </option>
-                  <option value="شكوى لاسترداد المبلغ">
-                    شكوى لاسترداد المبلغ
-                  </option>
+                  <option value="لم يتم استلام الطلب">لم يتم استلام الطلب</option>
+                  <option value="تم استلام الطلب ناقص">تم استلام الطلب ناقص</option>
+                  <option value="شكوى لاسترداد المبلغ">شكوى لاسترداد المبلغ</option>
                   <option value="اواجه مشكلة آخرى">اواجه مشكلة آخرى</option>
                 </select>
-                <ChevronDown
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  size={18}
-                />
+
+                <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               </div>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 رقم الطلب
               </label>
-              <input
-                type="text"
-                name="orderNumber"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-              />
+
+              <input type="text" name="orderNumber" className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 transition" />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 نوع العميل <span className="text-red-500">*</span>
               </label>
+
               <div className="relative">
-                <select
-                  name="clientType"
-                  required
-                  className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-                >
+                <select name="clientType" required className="w-full appearance-none bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 transition">
                   <option value="">--تحديد--</option>
                   <option value="فرد">فرد</option>
                   <option value="شركة">شركة</option>
                   <option value="مؤسسة">مؤسسة</option>
                 </select>
-                <ChevronDown
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  size={18}
-                />
+
+                <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               </div>
             </div>
           </div>
 
+          {/* INPUT */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
               الاسم الكامل <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              name="clientName"
-              required
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-            />
+
+            <input type="text" name="clientName" required className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 transition" />
           </div>
 
+          {/* CONTACT */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 رقم الجوال <span className="text-red-500">*</span>
               </label>
-              <input
-                type="tel"
-                name="phone"
-                dir="ltr"
-                required
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-right focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-              />
+
+              <input type="tel" name="phone" dir="ltr" required className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 transition" />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
                 البريد الإلكتروني <span className="text-red-500">*</span>
               </label>
-              <input
-                type="email"
-                name="email"
-                dir="ltr"
-                required
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-right focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all"
-              />
+
+              <input type="email" name="email" dir="ltr" required className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 transition" />
             </div>
           </div>
 
+          {/* TEXTAREA */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
               التفاصيل
             </label>
-            <textarea
-              rows={5}
-              name="content"
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all resize-none"
-            ></textarea>
+
+            <textarea rows={5} name="content" className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 transition resize-none"></textarea>
           </div>
 
+          {/* FILE */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
               المرفقات
             </label>
+
             <label className="block group">
-              <input
-                type="file"
-                name="files"
-                multiple
-                accept="image/*,.pdf,.doc,.docx"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-              <div
-                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${selectedFileNames.length > 0 ? "border-rose-400 bg-rose-50" : "border-gray-200 hover:border-rose-400 hover:bg-rose-50/50"}`}
-              >
-                <Upload
-                  className={`mx-auto mb-3 transition-transform group-hover:scale-110 ${selectedFileNames.length > 0 ? "text-rose-600" : "text-gray-400 group-hover:text-rose-500"}`}
-                  size={36}
-                />
+              <input type="file" name="files" multiple className="hidden" onChange={handleFileChange} />
+
+              <div className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition ${
+                selectedFileNames.length > 0 
+                ? "border-rose-400 bg-rose-50" 
+                : "border-gray-300 hover:border-rose-400 hover:bg-rose-50/40"
+              }`}>
+
+                <Upload className={`mx-auto mb-3 ${
+                  selectedFileNames.length > 0 
+                  ? "text-rose-600" 
+                  : "text-gray-400 group-hover:text-rose-500"
+                }`} size={36} />
+
                 {selectedFileNames.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-sm font-bold text-rose-700">
-                      تم اختيار {selectedFileNames.length} ملفات
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-600 font-medium">
-                    اضغط هنا لرفع الملفات والصور
+                  <p className="text-sm font-semibold text-rose-700">
+                    تم اختيار {selectedFileNames.length} ملفات
                   </p>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600 font-medium">
+                      اضغط هنا لرفع الملفات والصور
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      الصور و PDF فقط
+                    </p>
+                  </>
                 )}
               </div>
             </label>
           </div>
 
+          {/* BUTTON */}
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-rose-500 text-white font-bold text-lg py-4 rounded-xl hover:bg-rose-600 hover:shadow-lg hover:shadow-rose-500/30 transition-all disabled:opacity-70"
+            className="w-full bg-rose-600 text-white font-semibold text-lg py-4 rounded-xl hover:bg-rose-700 hover:shadow-lg transition disabled:opacity-70"
           >
             {isSubmitting ? "جاري الإرسال..." : "إرسال الطلب"}
           </button>

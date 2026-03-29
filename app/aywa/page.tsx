@@ -30,116 +30,160 @@ export default function AywaComplaintPage() {
   if (result?.success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4" dir="rtl">
-        <div className="bg-white p-10 rounded-2xl shadow-sm border-t-4 border-t-cyan-500 max-w-lg w-full text-center space-y-6">
-          <div className="w-20 h-20 bg-cyan-50 text-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white p-10 rounded-2xl shadow-md border-t-4 border-t-cyan-500 max-w-lg w-full text-center space-y-6">
+          <div className="w-20 h-20 bg-cyan-100 text-cyan-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={40} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">تم استلام بلاغك بنجاح</h2>
-          <p className="text-gray-600 leading-relaxed">شكراً لتواصلك مع إيوا نزيل. سيتم مراجعة طلبك والرد عليك عبر البريد الإلكتروني أو الهاتف في أقرب وقت.</p>
-          <button onClick={() => window.location.reload()} className="w-full bg-cyan-500 text-white font-bold py-3.5 rounded-lg hover:bg-cyan-600 transition-colors">إرسال بلاغ جديد</button>
+          <h2 className="text-2xl font-bold text-gray-900">تم استلام بلاغك بنجاح</h2>
+          <p className="text-gray-600 leading-relaxed text-sm">
+            شكراً لتواصلك مع إيوا نزيل. سيتم مراجعة طلبك والرد عليك عبر البريد الإلكتروني أو الهاتف في أقرب وقت.
+          </p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="w-full bg-cyan-600 text-white font-semibold py-3.5 rounded-lg hover:bg-cyan-700 transition-colors"
+          >
+            إرسال بلاغ جديد
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-gray-50 py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-b from-cyan-50 via-white to-gray-50 py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
       <div className="max-w-3xl mx-auto">
         
+        {/* HEADER */}
         <div className="text-center mb-10">
           <MonitorSmartphone className="mx-auto text-cyan-600 mb-4" size={56} />
-          <h1 className="text-3xl font-bold text-gray-800">دعم نظام إيوا نزيل</h1>
-          <p className="text-gray-500 mt-2">نحن هنا لمساعدتك، يرجى تعبئة تفاصيل البلاغ</p>
+          <h1 className="text-3xl font-bold text-gray-900">دعم نظام إيوا نزيل</h1>
+          <p className="text-gray-500 mt-2 text-sm">نحن هنا لمساعدتك، يرجى تعبئة تفاصيل البلاغ</p>
         </div>
 
-        <form action={handleSubmit} className="bg-white rounded-3xl shadow-lg border-t-4 border-t-cyan-500 p-8 sm:p-10 space-y-6">
-          {result?.error && <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2 text-sm font-medium"><AlertCircle size={18} /> {result.error}</div>}
+        <form action={handleSubmit} className="bg-white rounded-3xl shadow-xl border border-gray-100 border-t-4 border-t-cyan-500 p-8 sm:p-10 space-y-6">
 
-          {/* الحقل المخفي لتحديد النظام */}
+          {result?.error && (
+            <div className="bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-2 text-sm font-medium border border-red-100">
+              <AlertCircle size={18} /> {result.error}
+            </div>
+          )}
+
           <input type="hidden" name="sourceSystem" value="aywa_nazeel" />
 
+          {/* SELECTS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">نوع البلاغ <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <select name="submissionType" required className="w-full appearance-none bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition">
+                  <option value="">--تحديد--</option>
+                  <option value="شكوى">شكوى</option>
+                  <option value="طلب">طلب</option>
+                </select>
+                <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">الخدمة <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <select name="serviceType" required className="w-full appearance-none bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition">
+                  <option value="">--تحديد--</option>
+                  <option value="لم يتم استلام الطلب">لم يتم استلام الطلب</option>
+                  <option value="تم استلام الطلب ناقص">تم استلام الطلب ناقص</option>
+                  <option value="شكوى لاسترداد المبلغ">شكوى لاسترداد المبلغ</option>
+                  <option value="اواجه مشكلة آخرى">اواجه مشكلة آخرى</option>
+                </select>
+                <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">رقم الطلب</label>
+              <input type="text" name="orderNumber" className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">نوع العميل <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <select name="clientType" required className="w-full appearance-none bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition">
+                  <option value="">--تحديد--</option>
+                  <option value="فرد">فرد</option>
+                  <option value="شركة">شركة</option>
+                  <option value="مؤسسة">مؤسسة</option>
+                </select>
+                <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              </div>
+            </div>
+          </div>
+
+          {/* INPUTS */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-2">الاسم الكامل <span className="text-red-500">*</span></label>
+            <input type="text" name="clientName" required className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition" />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">نوع البلاغ <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <select name="submissionType" required className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all">
-                  <option value="">--تحديد--</option><option value="شكوى">شكوى</option><option value="طلب">طلب</option>
-                </select>
-                <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-              </div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">رقم الجوال <span className="text-red-500">*</span></label>
+              <input type="tel" name="phone" dir="ltr" required className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition" />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">الخدمة <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <select name="serviceType" required className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all">
-                  <option value="">--تحديد--</option><option value="لم يتم استلام الطلب">لم يتم استلام الطلب</option><option value="تم استلام الطلب ناقص">تم استلام الطلب ناقص</option><option value="شكوى لاسترداد المبلغ">شكوى لاسترداد المبلغ</option><option value="اواجه مشكلة آخرى">اواجه مشكلة آخرى</option>
-                </select>
-                <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">رقم الطلب</label>
-              <input type="text" name="orderNumber" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">نوع العميل <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <select name="clientType" required className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all">
-                  <option value="">--تحديد--</option><option value="فرد">فرد</option><option value="شركة">شركة</option><option value="مؤسسة">مؤسسة</option>
-                </select>
-                <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-              </div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">البريد الإلكتروني <span className="text-red-500">*</span></label>
+              <input type="email" name="email" dir="ltr" required className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition" />
             </div>
           </div>
 
+          {/* TEXTAREA */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 text-right">الاسم الكامل <span className="text-red-500">*</span></label>
-            <input type="text" name="clientName" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" />
+            <label className="block text-sm font-semibold text-gray-800 mb-2">التفاصيل</label>
+            <textarea rows={5} name="content" className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3.5 text-sm text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition resize-none"></textarea>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">رقم الجوال <span className="text-red-500">*</span></label>
-              <input type="tel" name="phone" dir="ltr" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-right focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all placeholder:text-left" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-right">البريد الإلكتروني <span className="text-red-500">*</span></label>
-              <input type="email" name="email" dir="ltr" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-right focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all placeholder:text-left" />
-            </div>
-          </div>
-
+          {/* FILE UPLOAD */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 text-right">التفاصيل</label>
-            <textarea rows={5} name="content" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all resize-none"></textarea>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 text-right">المرفقات</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-2">المرفقات</label>
             <label className="block group">
               <input type="file" name="files" multiple accept="image/*,.pdf,.doc,.docx" className="hidden" onChange={handleFileChange} />
-              <div className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${selectedFileNames.length > 0 ? 'border-cyan-400 bg-cyan-50' : 'border-gray-200 hover:border-cyan-400 hover:bg-cyan-50/50'}`}>
-                <Upload className={`mx-auto mb-3 transition-transform group-hover:scale-110 ${selectedFileNames.length > 0 ? 'text-cyan-600' : 'text-gray-400 group-hover:text-cyan-500'}`} size={36} />
+              
+              <div className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition ${
+                selectedFileNames.length > 0 
+                ? 'border-cyan-400 bg-cyan-50' 
+                : 'border-gray-300 hover:border-cyan-400 hover:bg-cyan-50/40'
+              }`}>
+                
+                <Upload className={`mx-auto mb-3 ${
+                  selectedFileNames.length > 0 ? 'text-cyan-600' : 'text-gray-400 group-hover:text-cyan-500'
+                }`} size={36} />
+
                 {selectedFileNames.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-sm font-bold text-cyan-700">تم اختيار {selectedFileNames.length} ملفات</p>
-                    <ul className="text-xs text-gray-600 flex flex-wrap justify-center gap-2">
-                      {selectedFileNames.map((name, idx) => <li key={idx} className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-cyan-100"><FileText size={12} className="text-cyan-500"/> {name}</li>)}
-                    </ul>
-                  </div>
+                  <>
+                    <p className="text-sm font-semibold text-cyan-700">
+                      تم اختيار {selectedFileNames.length} ملفات
+                    </p>
+                  </>
                 ) : (
                   <>
-                    <p className="text-sm text-gray-600 font-medium">اضغط هنا لرفع الملفات أو قم بسحبها وإفلاتها</p>
-                    <p className="text-xs text-gray-400 mt-2">يسمح بملفات الصور و PDF</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      اضغط هنا لرفع الملفات
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      الصور و PDF فقط
+                    </p>
                   </>
                 )}
               </div>
             </label>
           </div>
 
-          <button type="submit" disabled={isSubmitting} className="w-full bg-cyan-500 text-white font-bold text-lg py-4 rounded-xl hover:bg-cyan-600 hover:shadow-lg hover:shadow-cyan-500/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+          {/* BUTTON */}
+          <button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="w-full bg-cyan-600 text-white font-semibold text-lg py-4 rounded-xl hover:bg-cyan-700 hover:shadow-lg transition disabled:opacity-70"
+          >
             {isSubmitting ? 'جاري الإرسال...' : 'إرسال البلاغ'}
           </button>
         </form>
