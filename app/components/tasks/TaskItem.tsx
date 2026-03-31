@@ -32,7 +32,7 @@ export default function TaskItem({ task, canManage }: { task: any, canManage: bo
           {task.title}
         </h4>
         {canManage && (
-          <button onClick={handleDelete} disabled={isDeleting} className="text-gray-400 hover:text-red-500 transition-colors">
+          <button onClick={(e) => { e.stopPropagation(); handleDelete(); }} disabled={isDeleting} className="text-gray-400 hover:text-red-500 transition-colors">
             <Trash2 size={14} />
           </button>
         )}
@@ -61,7 +61,7 @@ export default function TaskItem({ task, canManage }: { task: any, canManage: bo
       <div className="flex gap-2 pt-2 border-t border-gray-50">
         {task.status !== 'IN_PROGRESS' && task.status !== 'COMPLETED' && (
             <button 
-                onClick={() => handleStatusChange('IN_PROGRESS')}
+                onClick={(e) => {e.stopPropagation(); handleStatusChange('IN_PROGRESS')}}
                 className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
             >
                 <PlayCircle size={14} /> ابدأ العمل
@@ -70,7 +70,7 @@ export default function TaskItem({ task, canManage }: { task: any, canManage: bo
         
         {task.status === 'IN_PROGRESS' && (
             <button 
-                onClick={() => handleStatusChange('COMPLETED')}
+                onClick={(e) =>{e.stopPropagation(); handleStatusChange('COMPLETED')}}
                 className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-bold text-green-600 bg-green-50 hover:bg-green-100 rounded transition-colors"
             >
                 <CheckCircle2 size={14} /> إكمال المهمة
