@@ -1,46 +1,50 @@
-'use server'
+"use server";
 
-import { Resend } from 'resend'
+import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // تحديد الإيميلات حسب الجهة
 const systemEmails: Record<string, string> = {
-  'aywa-nazeel': 'info@aywanazeel.com',
-  'sabl': 'refunds@sabl.com', // يمكنك تغييره لاحقاً
-}
+  "aywa-nazeel": "info@aywanazeel.com",
+  sabl: "refunds@sabl.com", // سبل الخاصة بإيوا نزيل
+  "nazeel-store": "info@nazeelstore.com",
+  "nazeel-sabl": "info@nazeelstore.com", // 👈 إيميل سبل الخاص بنزيل ستور
+};
 
 const systemNames: Record<string, string> = {
-  'aywa-nazeel': 'إيوا نزيل',
-  'sabl': 'شركة الشحن سبل (استرداد)',
-}
+  "aywa-nazeel": "إيوا نزيل",
+  sabl: "شركة الشحن سبل (إيوا نزيل)", // تم توضيح الاسم
+  "nazeel-store": "نزيل ستور (استرداد)",
+  "nazeel-sabl": "شركة الشحن سبل (نزيل ستور)", // 👈 النظام الرابع الجديد
+};
 
 export async function submitRefundAction(formData: FormData) {
   try {
-    const system = formData.get('system') as string
-    const targetEmail = systemEmails[system]
-    const systemName = systemNames[system]
+    const system = formData.get("system") as string;
+    const targetEmail = systemEmails[system];
+    const systemName = systemNames[system];
 
-    if (!targetEmail) return { error: 'نظام غير معروف' }
+    if (!targetEmail) return { error: "نظام غير معروف" };
 
     // استخراج البيانات
-    const employeeName = formData.get('employeeName') as string
-    const issueType = formData.get('issueType') as string
-    const inmateName = formData.get('inmateName') as string
-    const inmateId = formData.get('inmateId') as string
-    const prisonName = formData.get('prisonName') as string
-    const iban = formData.get('iban') as string
-    const last4Digits = formData.get('last4Digits') as string
-    const accountName = formData.get('accountName') as string
-    
+    const employeeName = formData.get("employeeName") as string;
+    const issueType = formData.get("issueType") as string;
+    const inmateName = formData.get("inmateName") as string;
+    const inmateId = formData.get("inmateId") as string;
+    const prisonName = formData.get("prisonName") as string;
+    const iban = formData.get("iban") as string;
+    const last4Digits = formData.get("last4Digits") as string;
+    const accountName = formData.get("accountName") as string;
+
     // معالجة المرفق (البلاغ)
-    const file = formData.get('file') as File | null
-    let attachments = []
+    const file = formData.get("file") as File | null;
+    let attachments = [];
 
     if (file && file.size > 0) {
-      const bytes = await file.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      attachments.push({ filename: file.name, content: buffer })
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      attachments.push({ filename: file.name, content: buffer });
     }
 
     const htmlContent = `
@@ -67,19 +71,19 @@ export async function submitRefundAction(formData: FormData) {
           </div>
         </div>
       </div>
-    `
+    `;
 
     await resend.emails.send({
-      from: 'Refund System <onboarding@resend.dev>',
+      from: "Refund System <onboarding@resend.dev>",
       to: targetEmail,
       subject: `طلب استرداد جديد - ${inmateName} - ${systemName}`,
       html: htmlContent,
       attachments: attachments.length > 0 ? attachments : undefined,
-    })
+    });
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('Refund Error:', error)
-    return { error: 'حدث خطأ أثناء الإرسال' }
+    console.error("Refund Error:", error);
+    return { error: "حدث خطأ أثناء الإرسال" };
   }
 }

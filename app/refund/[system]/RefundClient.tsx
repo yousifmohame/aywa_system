@@ -11,7 +11,8 @@ import {
   CheckCircle2,
   Loader2,
   Package,
-  Building,
+  ShoppingBag,
+  Truck, // 👈 تم استيراد أيقونة الشاحنة
 } from "lucide-react";
 
 // ==========================================
@@ -38,7 +39,7 @@ const themes = {
       "bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-lg shadow-teal-600/25 hover:from-teal-700 hover:to-emerald-700 rounded-2xl",
   },
   sabl: {
-    wrapper: "bg-slate-50", // لون رسمي ومؤسسي
+    wrapper: "bg-slate-50",
     card: "bg-white border-slate-200 shadow-sm rounded-xl",
     headerIconWrap: "bg-blue-50 border border-blue-100 rounded-lg",
     headerIconColor: "text-blue-600",
@@ -56,20 +57,59 @@ const themes = {
     button:
       "bg-blue-600 text-white shadow-md shadow-blue-600/20 hover:bg-blue-700 rounded-xl",
   },
+  "nazeel-store": {
+    wrapper: "bg-gradient-to-br from-fuchsia-50 via-purple-50 to-pink-50",
+    card: "bg-white/90 backdrop-blur-lg border-purple-100 shadow-xl shadow-purple-900/5 rounded-2xl",
+    headerIconWrap:
+      "bg-gradient-to-br from-purple-500 to-fuchsia-500 shadow-lg shadow-purple-500/20 rounded-2xl",
+    headerIconColor: "text-white",
+    title: "text-purple-900",
+    badge:
+      "bg-purple-100 text-purple-700 border border-purple-200 rounded-lg font-bold",
+    label: "text-purple-900 font-bold",
+    input:
+      "bg-white border-purple-100 focus:border-purple-500 focus:ring-purple-500/20 rounded-xl shadow-sm",
+    sectionBg: "bg-purple-50/50 border border-purple-100 rounded-2xl p-5",
+    sectionTitle: "text-purple-800",
+    uploadArea:
+      "border-purple-200 bg-purple-50 hover:border-purple-400 rounded-xl border-dashed transition-all",
+    uploadIconWrap: "bg-purple-100 text-purple-600 rounded-lg",
+    button:
+      "bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-md shadow-purple-500/20 hover:from-purple-700 hover:to-fuchsia-700 rounded-xl",
+  },
+  // 👈 الهوية البصرية الجديدة لـ سبل نزيل ستور (لون نيلي Indigo)
+  "nazeel-sabl": {
+    wrapper: "bg-indigo-50",
+    card: "bg-white border-indigo-200 shadow-md rounded-xl",
+    headerIconWrap: "bg-indigo-100 border border-indigo-200 rounded-lg",
+    headerIconColor: "text-indigo-700",
+    title: "text-indigo-900",
+    badge: "bg-indigo-600 text-white rounded-md px-3 py-1 shadow-sm",
+    label: "text-indigo-800 font-bold",
+    input:
+      "bg-indigo-50/30 border-indigo-200 focus:border-indigo-600 focus:ring-indigo-600/20 rounded-lg",
+    sectionBg: "bg-white border border-indigo-100 rounded-xl p-5 shadow-sm",
+    sectionTitle: "text-indigo-800",
+    uploadArea:
+      "border-indigo-300 bg-indigo-50/50 hover:border-indigo-600 rounded-xl border-dashed transition-colors",
+    uploadIconWrap:
+      "bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg",
+    button:
+      "bg-indigo-600 text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 rounded-xl",
+  },
 };
 
 export default function RefundClient({
   system,
   systemName,
 }: {
-  system: "aywa-nazeel" | "sabl";
+  system: "aywa-nazeel" | "sabl" | "nazeel-store" | "nazeel-sabl"; // 👈 التحديث هنا
   systemName: string;
 }) {
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [fileName, setFileName] = useState("");
 
-  // سحب الهوية البصرية بناءً على الرابط
   const theme = themes[system];
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -82,6 +122,17 @@ export default function RefundClient({
       if (res.success) setIsSuccess(true);
       else alert(res.error);
     });
+  };
+
+  // --- تحديد أيقونة الهيدر حسب النظام ---
+  const renderHeaderIcon = () => {
+    if (system === "sabl")
+      return <Package className={`w-8 h-8 ${theme.headerIconColor}`} />;
+    if (system === "nazeel-sabl")
+      return <Truck className={`w-8 h-8 ${theme.headerIconColor}`} />; // 🚚 شاحنة لسبل نزيل
+    if (system === "nazeel-store")
+      return <ShoppingBag className={`w-8 h-8 ${theme.headerIconColor}`} />;
+    return <Undo2 className={`w-8 h-8 ${theme.headerIconColor}`} />;
   };
 
   // --- شاشة النجاح ---
@@ -121,11 +172,7 @@ export default function RefundClient({
             <div
               className={`inline-flex items-center justify-center w-16 h-16 mb-4 ${theme.headerIconWrap}`}
             >
-              {system === "sabl" ? (
-                <Package className={`w-8 h-8 ${theme.headerIconColor}`} />
-              ) : (
-                <Undo2 className={`w-8 h-8 ${theme.headerIconColor}`} />
-              )}
+              {renderHeaderIcon()}
             </div>
             <h1 className={`text-xl font-bold mb-2 ${theme.title}`}>
               نموذج طلب استرداد

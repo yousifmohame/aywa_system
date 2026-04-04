@@ -8,11 +8,17 @@ type Props = {
 export default async function RefundPage({ params }: Props) {
   const { system } = await params
 
-  if (system !== 'aywa-nazeel' && system !== 'sabl') {
+  // تمت إضافة nazeel-sabl
+  if (system !== 'aywa-nazeel' && system !== 'sabl' && system !== 'nazeel-store' && system !== 'nazeel-sabl') {
     notFound()
   }
 
-  const systemName = system === 'aywa-nazeel' ? 'إيوا نزيل' : 'شركة الشحن سبل (استرداد)'
+  // تحديد الاسم
+  const systemName = 
+    system === 'aywa-nazeel' ? 'إيوا نزيل' : 
+    system === 'sabl' ? 'شركة الشحن سبل (إيوا نزيل)' : 
+    system === 'nazeel-store' ? 'نزيل ستور' :
+    'شركة الشحن سبل (نزيل ستور)'; // 👈 الاسم الجديد
 
-  return <RefundClient system={system} systemName={systemName} />
+  return <RefundClient system={system as any} systemName={systemName} />
 }
