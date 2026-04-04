@@ -74,7 +74,7 @@ export async function submitRefundAction(formData: FormData) {
     `;
 
     await resend.emails.send({
-      from: "Refund System <onboarding@resend.dev>",
+      from: "Refund System <aywa@aywasystem.online>",
       to: targetEmail,
       subject: `طلب استرداد جديد - ${inmateName} - ${systemName}`,
       html: htmlContent,

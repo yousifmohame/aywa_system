@@ -12,7 +12,8 @@ import {
   Loader2,
   Package,
   ShoppingBag,
-  Truck, // 👈 تم استيراد أيقونة الشاحنة
+  Truck,
+  AlertCircle, // 👈 لاستخدامها في إظهار رسائل الخطأ
 } from "lucide-react";
 
 // ==========================================
@@ -77,7 +78,6 @@ const themes = {
     button:
       "bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-md shadow-purple-500/20 hover:from-purple-700 hover:to-fuchsia-700 rounded-xl",
   },
-  // 👈 الهوية البصرية الجديدة لـ سبل نزيل ستور (لون نيلي Indigo)
   "nazeel-sabl": {
     wrapper: "bg-indigo-50",
     card: "bg-white border-indigo-200 shadow-md rounded-xl",
@@ -103,46 +103,59 @@ export default function RefundClient({
   system,
   systemName,
 }: {
-  system: "aywa-nazeel" | "sabl" | "nazeel-store" | "nazeel-sabl"; // 👈 التحديث هنا
+  system: "aywa-nazeel" | "sabl" | "nazeel-store" | "nazeel-sabl";
   systemName: string;
 }) {
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [fileName, setFileName] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // 👈 حالة لحفظ وعرض الأخطاء
 
   const theme = themes[system];
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMessage(""); // تصفير الأخطاء السابقة
     const formData = new FormData(e.currentTarget);
     formData.append("system", system);
 
+    // 🛡️ استخدام try/catch داخل الترانزكشن للتعامل مع أخطاء السيرفر الطارئة
     startTransition(async () => {
-      const res = await submitRefundAction(formData);
-      if (res.success) setIsSuccess(true);
-      else alert(res.error);
+      try {
+        const res = await submitRefundAction(formData);
+        if (res.success) {
+          setIsSuccess(true);
+        } else {
+          setErrorMessage(res.error || "حدث خطأ غير متوقع أثناء الإرسال.");
+        }
+      } catch (error) {
+        console.error("Submission Error:", error);
+        setErrorMessage(
+          "تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مجدداً.",
+        );
+      }
     });
   };
 
-  // --- تحديد أيقونة الهيدر حسب النظام ---
   const renderHeaderIcon = () => {
     if (system === "sabl")
       return <Package className={`w-8 h-8 ${theme.headerIconColor}`} />;
     if (system === "nazeel-sabl")
-      return <Truck className={`w-8 h-8 ${theme.headerIconColor}`} />; // 🚚 شاحنة لسبل نزيل
+      return <Truck className={`w-8 h-8 ${theme.headerIconColor}`} />;
     if (system === "nazeel-store")
       return <ShoppingBag className={`w-8 h-8 ${theme.headerIconColor}`} />;
     return <Undo2 className={`w-8 h-8 ${theme.headerIconColor}`} />;
   };
 
-  // --- شاشة النجاح ---
   if (isSuccess) {
     return (
       <div
         className={`min-h-[100dvh] flex items-center justify-center p-4 ${theme.wrapper}`}
         dir="rtl"
       >
-        <div className={`max-w-md w-full text-center p-8 ${theme.card}`}>
+        <div
+          className={`max-w-md w-full text-center p-8 ${theme.card} animate-in fade-in zoom-in duration-300`}
+        >
           <div
             className={`w-20 h-20 flex items-center justify-center mx-auto mb-6 ${theme.headerIconWrap}`}
           >
@@ -159,7 +172,6 @@ export default function RefundClient({
     );
   }
 
-  // --- شاشة النموذج ---
   return (
     <div
       className={`min-h-[100dvh] py-8 px-4 font-[Tajawal] ${theme.wrapper}`}
@@ -183,6 +195,14 @@ export default function RefundClient({
               {systemName}
             </p>
           </div>
+
+          {/* عرض رسالة الخطأ إن وجدت */}
+          {errorMessage && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-4">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p>{errorMessage}</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* الموظف */}
@@ -318,10 +338,13 @@ export default function RefundClient({
               </div>
             </div>
 
-            {/* المرفقات */}
+            {/* المرفقات (أصبح اختيارياً) */}
             <div className={`space-y-2`}>
               <label className={`block text-sm ${theme.label}`}>
-                إرفاق صورة البلاغ / الإيصال
+                إرفاق صورة البلاغ / الإيصال{" "}
+                <span className="text-gray-400 text-xs font-normal">
+                  (اختياري)
+                </span>
               </label>
               <label
                 className={`cursor-pointer w-full p-4 border-2 flex items-center gap-3 transition-colors ${theme.uploadArea}`}
@@ -337,10 +360,10 @@ export default function RefundClient({
                     PNG, JPG, PDF (حتى 5MB)
                   </p>
                 </div>
+                {/* 👈 تم إزالة required من هنا */}
                 <input
                   type="file"
                   name="file"
-                  required
                   className="hidden"
                   onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
                 />
@@ -351,10 +374,13 @@ export default function RefundClient({
             <button
               type="submit"
               disabled={isPending}
-              className={`w-full py-4 transition-all active:scale-[0.98] flex items-center justify-center gap-2 font-bold disabled:opacity-70 ${theme.button}`}
+              className={`w-full py-4 transition-all active:scale-[0.98] flex items-center justify-center gap-3 font-bold disabled:opacity-70 disabled:cursor-not-allowed ${theme.button}`}
             >
               {isPending ? (
-                <Loader2 className="animate-spin" size={20} />
+                <>
+                  <Loader2 className="animate-spin w-6 h-6" />
+                  <span>جاري إرسال الطلب...</span>
+                </>
               ) : (
                 <>
                   <span>إرسال الطلب للاعتماد</span>
