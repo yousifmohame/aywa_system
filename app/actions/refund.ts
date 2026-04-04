@@ -7,14 +7,14 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // تحديد الإيميلات حسب الجهة
 const systemEmails: Record<string, string> = {
   "aywa-nazeel": "info@aywanazeel.com",
-  sabl: "refunds@sabl.com", // سبل الخاصة بإيوا نزيل
+  "sabl": "info@aywanazeel.com", // سبل الخاصة بإيوا نزيل
   "nazeel-store": "info@nazeelstore.com",
   "nazeel-sabl": "info@nazeelstore.com", // 👈 إيميل سبل الخاص بنزيل ستور
 };
 
 const systemNames: Record<string, string> = {
   "aywa-nazeel": "إيوا نزيل",
-  sabl: "شركة الشحن سبل (إيوا نزيل)", // تم توضيح الاسم
+  "sabl": "شركة الشحن سبل (إيوا نزيل)", // تم توضيح الاسم
   "nazeel-store": "نزيل ستور (استرداد)",
   "nazeel-sabl": "شركة الشحن سبل (نزيل ستور)", // 👈 النظام الرابع الجديد
 };
