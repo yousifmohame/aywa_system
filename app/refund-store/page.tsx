@@ -99,7 +99,7 @@ export default function NazeelStoreRefundPage() {
               <input
                 name="employeeName"
                 type="text"
-                className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                className="w-full p-3.5 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                 placeholder="أدخل اسم الموظف"
                 required
               />
@@ -166,7 +166,7 @@ export default function NazeelStoreRefundPage() {
                   <input
                     name="orderNumber"
                     type="text"
-                    className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                    className="w-full p-3.5 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                     placeholder="أدخل رقم الطلب"
                     required
                   />
@@ -236,7 +236,7 @@ export default function NazeelStoreRefundPage() {
                       <input
                         type="tel"
                         name="customerPhone"
-                        className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                        className="w-full p-3.5 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                         placeholder="05XXXXXXXX"
                         required
                         dir="ltr"
@@ -249,7 +249,7 @@ export default function NazeelStoreRefundPage() {
                       <input
                         type="datetime-local"
                         name="callTime"
-                        className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-gray-600"
+                        className="w-full p-3.5 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-gray-600"
                         required
                       />
                     </div>
@@ -290,7 +290,7 @@ export default function NazeelStoreRefundPage() {
                     <input
                       name="inmateName"
                       type="text"
-                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                      className="w-full p-3 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                       placeholder="الاسم الكامل"
                       required
                     />
@@ -302,7 +302,7 @@ export default function NazeelStoreRefundPage() {
                     <input
                       name="inmateId"
                       type="text"
-                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                      className="w-full p-3 border text-black border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                       placeholder="رقم الهوية"
                       required
                     />
@@ -314,7 +314,7 @@ export default function NazeelStoreRefundPage() {
                     <input
                       name="prisonName"
                       type="text"
-                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                      className="w-full p-3 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                       placeholder="اسم السجن"
                       required
                     />
@@ -333,7 +333,7 @@ export default function NazeelStoreRefundPage() {
                       name="iban"
                       type="text"
                       dir="ltr"
-                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-left"
+                      className="w-full p-3 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-left"
                       placeholder="SAXXXXXXXXXXXXXXXXXX"
                       required
                     />
@@ -347,7 +347,7 @@ export default function NazeelStoreRefundPage() {
                       type="text"
                       maxLength={4}
                       dir="ltr"
-                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-center tracking-widest"
+                      className="w-full p-3 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-center tracking-widest"
                       placeholder="XXXX"
                       required
                     />
@@ -359,7 +359,7 @@ export default function NazeelStoreRefundPage() {
                     <input
                       name="accountName"
                       type="text"
-                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                      className="w-full p-3 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                       placeholder="الاسم الكامل"
                       required
                     />
@@ -373,7 +373,7 @@ export default function NazeelStoreRefundPage() {
                   <input
                     type="file"
                     name="file"
-                    className="w-full p-2 border-2 border-dashed border-purple-200 rounded-xl bg-purple-50/30 focus:outline-none focus:border-purple-500 transition-all file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 file:cursor-pointer file:font-bold text-sm text-gray-600"
+                    className="w-full p-2 text-black border-2 border-dashed border-purple-200 rounded-xl bg-purple-50/30 focus:outline-none focus:border-purple-500 transition-all file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 file:cursor-pointer file:font-bold text-sm text-gray-600"
                     required
                   />
                 </div>
@@ -388,7 +388,7 @@ export default function NazeelStoreRefundPage() {
               <textarea
                 name="orderDetails"
                 rows={4}
-                className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition-all text-sm"
+                className="w-full p-3.5 text-black border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition-all text-sm"
                 placeholder="أدخل تفاصيل الطلب أو أي ملاحظات إضافية..."
                 required
               ></textarea>

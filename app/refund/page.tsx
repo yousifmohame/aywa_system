@@ -97,7 +97,7 @@ export default function UnifiedRefundPage() {
               <input
                 name="employeeName"
                 type="text"
-                className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                className="w-full p-3.5 text-black  border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
                 placeholder="أدخل اسم الموظف"
                 required
               />
@@ -162,7 +162,7 @@ export default function UnifiedRefundPage() {
                   <input
                     name="orderNumber"
                     type="text"
-                    className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                    className="w-full p-3.5 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
                     placeholder="أدخل رقم الطلب"
                     required
                   />
@@ -217,7 +217,7 @@ export default function UnifiedRefundPage() {
                       name="whatsappFiles"
                       accept="image/*"
                       multiple
-                      className="w-full p-2 border-2 border-dashed border-green-200 rounded-xl bg-green-50/30 focus:outline-none focus:border-green-500 transition-all file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200 file:cursor-pointer file:font-bold text-sm text-gray-600"
+                      className="w-full p-2 text-black border-2 border-dashed border-green-200 rounded-xl bg-green-50/30 focus:outline-none focus:border-green-500 transition-all file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200 file:cursor-pointer file:font-bold text-sm text-gray-600"
                     />
                   </div>
                 )}
@@ -232,7 +232,7 @@ export default function UnifiedRefundPage() {
                       <input
                         type="tel"
                         name="customerPhone"
-                        className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                        className="w-full p-3.5 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
                         placeholder="05XXXXXXXX"
                         required
                         dir="ltr"
@@ -245,7 +245,7 @@ export default function UnifiedRefundPage() {
                       <input
                         type="datetime-local"
                         name="callTime"
-                        className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-gray-600"
+                        className="w-full p-3.5 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-gray-600"
                         required
                       />
                     </div>
@@ -286,7 +286,7 @@ export default function UnifiedRefundPage() {
                     <input
                       name="inmateName"
                       type="text"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                      className="w-full p-3 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
                       placeholder="الاسم الكامل"
                       required
                     />
@@ -298,7 +298,7 @@ export default function UnifiedRefundPage() {
                     <input
                       name="inmateId"
                       type="text"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                      className="w-full p-3 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
                       placeholder="رقم الهوية"
                       required
                     />
@@ -310,7 +310,7 @@ export default function UnifiedRefundPage() {
                     <input
                       name="prisonName"
                       type="text"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                      className="w-full p-3 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
                       placeholder="اسم السجن"
                       required
                     />
@@ -329,7 +329,7 @@ export default function UnifiedRefundPage() {
                       name="iban"
                       type="text"
                       dir="ltr"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-left"
+                      className="w-full p-3 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-left"
                       placeholder="SAXXXXXXXXXXXXXXXXXX"
                       required
                     />
@@ -343,7 +343,7 @@ export default function UnifiedRefundPage() {
                       type="text"
                       maxLength={4}
                       dir="ltr"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-center tracking-widest"
+                      className="w-full p-3 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-center tracking-widest"
                       placeholder="XXXX"
                       required
                     />
@@ -355,7 +355,7 @@ export default function UnifiedRefundPage() {
                     <input
                       name="accountName"
                       type="text"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                      className="w-full p-3 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
                       placeholder="الاسم الكامل"
                       required
                     />
@@ -369,7 +369,7 @@ export default function UnifiedRefundPage() {
                   <input
                     type="file"
                     name="file"
-                    className="w-full p-2 border-2 border-dashed border-green-200 rounded-xl bg-green-50/30 focus:outline-none focus:border-green-500 transition-all file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200 file:cursor-pointer file:font-bold text-sm text-gray-600"
+                    className="w-full p-2 text-black border-2 border-dashed border-green-200 rounded-xl bg-green-50/30 focus:outline-none focus:border-green-500 transition-all file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200 file:cursor-pointer file:font-bold text-sm text-gray-600"
                     required
                   />
                 </div>
@@ -384,7 +384,7 @@ export default function UnifiedRefundPage() {
               <textarea
                 name="orderDetails"
                 rows={4}
-                className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 resize-none transition-all text-sm"
+                className="w-full p-3.5 text-black border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 resize-none transition-all text-sm"
                 placeholder="أدخل تفاصيل الطلب أو أي ملاحظات إضافية..."
                 required
               ></textarea>

@@ -13,7 +13,7 @@ export async function submitUnifiedRefundAction(formData: FormData) {
     const orderDetails = formData.get("orderDetails") as string;
 
     const targetEmail =
-      sourceName === "store" ? "info@nazeelstore.com" : "info@aywanazeel.com";
+      sourceName === "store" ? "nazeelstore991@gmail.com" : "aywanazeel@gmail.com";
     const systemTitle = sourceName === "store" ? "نزيل ستور" : "إيوا نزيل";
     const themeColor = sourceName === "store" ? "#9333ea" : "#16a34a";
 
