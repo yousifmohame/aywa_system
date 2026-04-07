@@ -14,7 +14,7 @@ export async function submitUnifiedRefundAction(formData: FormData) {
 
     // تحديد الإيميل والاسم بناءً على الصفحة التي أُرسل منها الطلب
     const targetEmail =
-      sourceName === "store" ? "muraadyousif@gmail.com" : "info@aywanazeel.com";
+      sourceName === "store" ? "nazeelstore991@gmail.com" : "aywanazeel@gmail.com";
     const systemTitle = sourceName === "store" ? "نزيل ستور" : "إيوا نزيل";
     const themeColor = sourceName === "store" ? "#9333ea" : "#16a34a"; // بنفسجي للستور، أخضر لأيوا
 
