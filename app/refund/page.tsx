@@ -13,6 +13,9 @@ import {
 
 export default function UnifiedRefundPage() {
   const [department, setDepartment] = useState<"aywa" | "sabl">("aywa");
+  // 👈 إضافة حالة جديدة لمراقبة نوع التواصل
+  const [contactType, setContactType] = useState<"whatsapp" | "call" | "">("");
+
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -64,7 +67,6 @@ export default function UnifiedRefundPage() {
     >
       <div className="max-w-md mx-auto">
         <div className="bg-white rounded-3xl shadow-xl shadow-green-900/5 border border-green-50 p-6 sm:p-8">
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-800 to-emerald-600 rounded-2xl mb-4 shadow-lg shadow-green-900/20 border border-green-700">
               <RefreshCcw className="w-8 h-8 text-white" />
@@ -86,7 +88,7 @@ export default function UnifiedRefundPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <input type="hidden" name="sourceName" value="aywa" />
-            {/* الحقل المشترك: اسم الموظف */}
+
             <div className="bg-green-50/50 p-4 rounded-2xl border border-green-100">
               <label className="flex items-center gap-2 mb-3 text-sm font-bold text-green-900">
                 <UserCircle className="w-5 h-5 text-green-700" />
@@ -101,7 +103,6 @@ export default function UnifiedRefundPage() {
               />
             </div>
 
-            {/* اختيار الجهة */}
             <div>
               <label className="block mb-3 text-sm font-bold text-green-900">
                 جهة الاسترجاع
@@ -120,7 +121,6 @@ export default function UnifiedRefundPage() {
                   />
                   <span>أيوا نزيل</span>
                 </label>
-
                 <label
                   className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${department === "sabl" ? "border-green-600 bg-green-50 shadow-sm text-green-800 font-bold" : "border-gray-200 hover:border-green-300 hover:bg-green-50/30 text-gray-600"}`}
                 >
@@ -167,33 +167,90 @@ export default function UnifiedRefundPage() {
                     required
                   />
                 </div>
+
+                {/* 👈 أزرار اختيار نوع التواصل الذكية */}
                 <div>
                   <label className="block mb-3 text-sm font-bold text-green-900">
                     نوع التواصل
                   </label>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <label className="flex items-center justify-center gap-2 p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-green-300 hover:bg-green-50/30 transition-all has-[:checked]:border-green-600 has-[:checked]:bg-green-50 has-[:checked]:text-green-800 has-[:checked]:font-bold text-gray-600">
+                    <label
+                      className={`flex items-center justify-center gap-2 p-3 border-2 rounded-xl cursor-pointer transition-all ${contactType === "whatsapp" ? "border-green-600 bg-green-50 text-green-800 font-bold" : "border-gray-200 hover:border-green-300 hover:bg-green-50/30 text-gray-600"}`}
+                    >
                       <input
                         type="radio"
                         name="contactType"
                         value="whatsapp"
                         className="sr-only"
+                        onChange={() => setContactType("whatsapp")}
                         required
                       />
                       <span>واتساب</span>
                     </label>
-                    <label className="flex items-center justify-center gap-2 p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-green-300 hover:bg-green-50/30 transition-all has-[:checked]:border-green-600 has-[:checked]:bg-green-50 has-[:checked]:text-green-800 has-[:checked]:font-bold text-gray-600">
+                    <label
+                      className={`flex items-center justify-center gap-2 p-3 border-2 rounded-xl cursor-pointer transition-all ${contactType === "call" ? "border-green-600 bg-green-50 text-green-800 font-bold" : "border-gray-200 hover:border-green-300 hover:bg-green-50/30 text-gray-600"}`}
+                    >
                       <input
                         type="radio"
                         name="contactType"
                         value="call"
                         className="sr-only"
+                        onChange={() => setContactType("call")}
                         required
                       />
                       <span>مكالمة</span>
                     </label>
                   </div>
                 </div>
+
+                {/* 👈 الحقول التي تظهر عند اختيار واتساب */}
+                {contactType === "whatsapp" && (
+                  <div className="animate-in slide-in-from-top-2 fade-in duration-300">
+                    <label className="block mb-2 text-sm font-bold text-green-900">
+                      إرفاق صور المحادثة{" "}
+                      <span className="text-gray-400 text-xs font-normal">
+                        (يمكنك تحديد أكثر من صورة)
+                      </span>
+                    </label>
+                    <input
+                      type="file"
+                      name="whatsappFiles"
+                      accept="image/*"
+                      multiple
+                      className="w-full p-2 border-2 border-dashed border-green-200 rounded-xl bg-green-50/30 focus:outline-none focus:border-green-500 transition-all file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200 file:cursor-pointer file:font-bold text-sm text-gray-600"
+                    />
+                  </div>
+                )}
+
+                {/* 👈 الحقول التي تظهر عند اختيار مكالمة */}
+                {contactType === "call" && (
+                  <div className="space-y-4 animate-in slide-in-from-top-2 fade-in duration-300 bg-green-50/30 p-4 rounded-2xl border border-green-100">
+                    <div>
+                      <label className="block mb-2 text-sm font-bold text-green-900">
+                        رقم العميل
+                      </label>
+                      <input
+                        type="tel"
+                        name="customerPhone"
+                        className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                        placeholder="05XXXXXXXX"
+                        required
+                        dir="ltr"
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-2 text-sm font-bold text-green-900">
+                        وقت الاتصال
+                      </label>
+                      <input
+                        type="datetime-local"
+                        name="callTime"
+                        className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-gray-600"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -319,7 +376,7 @@ export default function UnifiedRefundPage() {
               </div>
             )}
 
-            {/* 👈 الحقل المشترك الدائم: تفاصيل الطلب */}
+            {/* الحقل المشترك الدائم: تفاصيل الطلب */}
             <div className="pt-2 animate-in fade-in duration-500">
               <label className="block mb-2 text-sm font-bold text-green-900">
                 تفاصيل الطلب / الملاحظات
