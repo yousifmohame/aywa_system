@@ -13,7 +13,7 @@ import {
   Package,
   ShoppingBag,
   Truck,
-  AlertCircle, // 👈 لاستخدامها في إظهار رسائل الخطأ
+  AlertCircle,
 } from "lucide-react";
 
 // ==========================================
@@ -27,10 +27,11 @@ const themes = {
       "bg-gradient-to-br from-teal-500 to-emerald-600 shadow-lg shadow-teal-500/30 border-0 rounded-2xl",
     headerIconColor: "text-white",
     title: "text-teal-900",
+    subText: "text-teal-600/80", // 👈 للخطوط الثانوية
     badge: "bg-teal-50 text-teal-700 border border-teal-200 rounded-full",
     label: "text-teal-900 font-bold",
     input:
-      "bg-white border-teal-100 focus:border-teal-500 focus:ring-teal-500/20 rounded-2xl shadow-sm shadow-teal-100",
+      "bg-white border-teal-100 focus:border-teal-500 focus:ring-teal-500/20 rounded-2xl shadow-sm shadow-teal-100 text-teal-900 placeholder:text-teal-600/40", // 👈 ألوان النص الداخلي
     sectionBg: "bg-teal-50/50 border border-teal-100 rounded-3xl p-5",
     sectionTitle: "text-teal-800",
     uploadArea:
@@ -45,10 +46,11 @@ const themes = {
     headerIconWrap: "bg-blue-50 border border-blue-100 rounded-lg",
     headerIconColor: "text-blue-600",
     title: "text-slate-900",
+    subText: "text-slate-500", // 👈 للخطوط الثانوية
     badge: "bg-blue-600 text-white rounded-md px-3 py-1",
     label: "text-slate-700 font-semibold",
     input:
-      "bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg",
+      "bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg text-slate-900 placeholder:text-slate-400", // 👈 ألوان النص الداخلي
     sectionBg: "bg-white border border-slate-200 rounded-xl p-5 shadow-sm",
     sectionTitle: "text-slate-800",
     uploadArea:
@@ -65,11 +67,12 @@ const themes = {
       "bg-gradient-to-br from-purple-500 to-fuchsia-500 shadow-lg shadow-purple-500/20 rounded-2xl",
     headerIconColor: "text-white",
     title: "text-purple-900",
+    subText: "text-purple-600/80", // 👈 للخطوط الثانوية
     badge:
       "bg-purple-100 text-purple-700 border border-purple-200 rounded-lg font-bold",
     label: "text-purple-900 font-bold",
     input:
-      "bg-white border-purple-100 focus:border-purple-500 focus:ring-purple-500/20 rounded-xl shadow-sm",
+      "bg-white border-purple-100 focus:border-purple-500 focus:ring-purple-500/20 rounded-xl shadow-sm text-purple-900 placeholder:text-purple-400", // 👈 ألوان النص الداخلي
     sectionBg: "bg-purple-50/50 border border-purple-100 rounded-2xl p-5",
     sectionTitle: "text-purple-800",
     uploadArea:
@@ -84,10 +87,11 @@ const themes = {
     headerIconWrap: "bg-indigo-100 border border-indigo-200 rounded-lg",
     headerIconColor: "text-indigo-700",
     title: "text-indigo-900",
+    subText: "text-indigo-600/80", // 👈 للخطوط الثانوية
     badge: "bg-indigo-600 text-white rounded-md px-3 py-1 shadow-sm",
     label: "text-indigo-800 font-bold",
     input:
-      "bg-indigo-50/30 border-indigo-200 focus:border-indigo-600 focus:ring-indigo-600/20 rounded-lg",
+      "bg-indigo-50/30 border-indigo-200 focus:border-indigo-600 focus:ring-indigo-600/20 rounded-lg text-indigo-900 placeholder:text-indigo-400", // 👈 ألوان النص الداخلي
     sectionBg: "bg-white border border-indigo-100 rounded-xl p-5 shadow-sm",
     sectionTitle: "text-indigo-800",
     uploadArea:
@@ -109,17 +113,16 @@ export default function RefundClient({
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [fileName, setFileName] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // 👈 حالة لحفظ وعرض الأخطاء
+  const [errorMessage, setErrorMessage] = useState("");
 
   const theme = themes[system];
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setErrorMessage(""); // تصفير الأخطاء السابقة
+    setErrorMessage("");
     const formData = new FormData(e.currentTarget);
     formData.append("system", system);
 
-    // 🛡️ استخدام try/catch داخل الترانزكشن للتعامل مع أخطاء السيرفر الطارئة
     startTransition(async () => {
       try {
         const res = await submitRefundAction(formData);
@@ -164,7 +167,7 @@ export default function RefundClient({
           <h2 className={`text-2xl font-bold mb-2 ${theme.title}`}>
             تم إرسال الطلب بنجاح!
           </h2>
-          <p className="text-gray-500">
+          <p className={theme.subText}>
             تم تحويل طلب الاسترداد إلى الإدارة المالية للمراجعة.
           </p>
         </div>
@@ -189,18 +192,16 @@ export default function RefundClient({
             <h1 className={`text-xl font-bold mb-2 ${theme.title}`}>
               نموذج طلب استرداد
             </h1>
-            <p
-              className={`text-xs font-bold inline-block px-3 py-1 ${theme.badge}`}
-            >
+            <p className={`text-xs inline-block px-3 py-1 ${theme.badge}`}>
               {systemName}
             </p>
           </div>
 
-          {/* عرض رسالة الخطأ إن وجدت */}
+          {/* Error Message */}
           {errorMessage && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-4">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <p>{errorMessage}</p>
+              <p className="font-medium">{errorMessage}</p>
             </div>
           )}
 
@@ -229,7 +230,7 @@ export default function RefundClient({
               </label>
               <select
                 name="issueType"
-                className={`w-full p-3.5 border focus:outline-none focus:ring-2 transition-all text-sm text-gray-600 ${theme.input}`}
+                className={`w-full p-3.5 border focus:outline-none focus:ring-2 transition-all text-sm ${theme.input}`}
                 required
               >
                 <option value="">اختر سبب الاسترداد</option>
@@ -249,7 +250,9 @@ export default function RefundClient({
                 <Building2 className="w-4 h-4 opacity-70" /> بيانات النزيل
               </h3>
               <div>
-                <label className="block mb-1.5 text-xs font-bold text-gray-500">
+                <label
+                  className={`block mb-1.5 text-xs font-bold ${theme.subText}`}
+                >
                   الاسم الرباعي
                 </label>
                 <input
@@ -262,7 +265,9 @@ export default function RefundClient({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block mb-1.5 text-xs font-bold text-gray-500">
+                  <label
+                    className={`block mb-1.5 text-xs font-bold ${theme.subText}`}
+                  >
                     رقم الهوية
                   </label>
                   <input
@@ -274,7 +279,9 @@ export default function RefundClient({
                   />
                 </div>
                 <div>
-                  <label className="block mb-1.5 text-xs font-bold text-gray-500">
+                  <label
+                    className={`block mb-1.5 text-xs font-bold ${theme.subText}`}
+                  >
                     اسم السجن
                   </label>
                   <input
@@ -296,7 +303,9 @@ export default function RefundClient({
                 <Landmark className="w-4 h-4 opacity-70" /> البيانات البنكية
               </h3>
               <div>
-                <label className="block mb-1.5 text-xs font-bold text-gray-500">
+                <label
+                  className={`block mb-1.5 text-xs font-bold ${theme.subText}`}
+                >
                   اسم صاحب الحساب
                 </label>
                 <input
@@ -309,7 +318,9 @@ export default function RefundClient({
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <label className="block mb-1.5 text-xs font-bold text-gray-500">
+                  <label
+                    className={`block mb-1.5 text-xs font-bold ${theme.subText}`}
+                  >
                     الآيبان (IBAN)
                   </label>
                   <input
@@ -322,7 +333,9 @@ export default function RefundClient({
                   />
                 </div>
                 <div className="col-span-1">
-                  <label className="block mb-1.5 text-xs font-bold text-gray-500">
+                  <label
+                    className={`block mb-1.5 text-xs font-bold ${theme.subText}`}
+                  >
                     آخر 4 أرقام
                   </label>
                   <input
@@ -338,11 +351,13 @@ export default function RefundClient({
               </div>
             </div>
 
-            {/* المرفقات (أصبح اختيارياً) */}
+            {/* المرفقات (اختياري) */}
             <div className={`space-y-2`}>
               <label className={`block text-sm ${theme.label}`}>
                 إرفاق صورة البلاغ / الإيصال{" "}
-                <span className="text-gray-400 text-xs font-normal">
+                <span
+                  className={`${theme.subText} text-xs font-normal opacity-80`}
+                >
                   (اختياري)
                 </span>
               </label>
@@ -353,14 +368,13 @@ export default function RefundClient({
                   <Upload size={20} />
                 </div>
                 <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-bold text-gray-700 truncate">
+                  <p className={`text-sm font-bold truncate ${theme.title}`}>
                     {fileName || "اختر ملفاً أو اسحبه هنا"}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className={`text-xs mt-0.5 ${theme.subText}`}>
                     PNG, JPG, PDF (حتى 5MB)
                   </p>
                 </div>
-                {/* 👈 تم إزالة required من هنا */}
                 <input
                   type="file"
                   name="file"
