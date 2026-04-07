@@ -11,8 +11,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-export default function UnifiedRefundPage() {
-  const [department, setDepartment] = useState<"aywa" | "sabl">("aywa");
+export default function NazeelStoreRefundPage() {
+  // تم تغيير الحالة الافتراضية لتكون "store" بدلاً من "aywa"
+  const [department, setDepartment] = useState<"store" | "sabl">("store");
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -39,14 +40,14 @@ export default function UnifiedRefundPage() {
   if (isSuccess) {
     return (
       <div
-        className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center p-4"
+        className="min-h-screen bg-gradient-to-b from-fuchsia-50 to-white flex items-center justify-center p-4"
         dir="rtl"
       >
-        <div className="bg-white rounded-3xl shadow-xl border border-green-50 p-8 max-w-md w-full text-center animate-in fade-in zoom-in duration-300">
-          <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="bg-white rounded-3xl shadow-xl border border-purple-50 p-8 max-w-md w-full text-center animate-in fade-in zoom-in duration-300">
+          <div className="w-20 h-20 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 size={40} />
           </div>
-          <h2 className="text-2xl font-bold text-green-900 mb-2">
+          <h2 className="text-2xl font-bold text-purple-900 mb-2">
             تم إرسال الطلب بنجاح!
           </h2>
           <p className="text-gray-500">
@@ -59,17 +60,17 @@ export default function UnifiedRefundPage() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-b from-green-50 to-white py-8 px-4 font-[Tajawal]"
+      className="min-h-screen bg-gradient-to-b from-fuchsia-50 to-white py-8 px-4 font-[Tajawal]"
       dir="rtl"
     >
       <div className="max-w-md mx-auto">
-        <div className="bg-white rounded-3xl shadow-xl shadow-green-900/5 border border-green-50 p-6 sm:p-8">
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl shadow-purple-900/5 border border-purple-50 p-6 sm:p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-800 to-emerald-600 rounded-2xl mb-4 shadow-lg shadow-green-900/20 border border-green-700">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-700 to-fuchsia-500 rounded-2xl mb-4 shadow-lg shadow-purple-900/20 border border-purple-600">
               <RefreshCcw className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-green-900 mb-2">
+            <h1 className="text-xl font-bold text-purple-900 mb-2">
               نموذج الاسترجاع
             </h1>
             <p className="text-sm text-gray-500">
@@ -85,17 +86,17 @@ export default function UnifiedRefundPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <input type="hidden" name="sourceName" value="aywa" />
+            <input type="hidden" name="sourceName" value="store" />
             {/* الحقل المشترك: اسم الموظف */}
-            <div className="bg-green-50/50 p-4 rounded-2xl border border-green-100">
-              <label className="flex items-center gap-2 mb-3 text-sm font-bold text-green-900">
-                <UserCircle className="w-5 h-5 text-green-700" />
+            <div className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
+              <label className="flex items-center gap-2 mb-3 text-sm font-bold text-purple-900">
+                <UserCircle className="w-5 h-5 text-purple-700" />
                 <span>اسم الموظف المتخذ الإجراء</span>
               </label>
               <input
                 name="employeeName"
                 type="text"
-                className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                 placeholder="أدخل اسم الموظف"
                 required
               />
@@ -103,26 +104,26 @@ export default function UnifiedRefundPage() {
 
             {/* اختيار الجهة */}
             <div>
-              <label className="block mb-3 text-sm font-bold text-green-900">
+              <label className="block mb-3 text-sm font-bold text-purple-900">
                 جهة الاسترجاع
               </label>
               <div className="space-y-3">
                 <label
-                  className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${department === "aywa" ? "border-green-600 bg-green-50 shadow-sm text-green-800 font-bold" : "border-gray-200 hover:border-green-300 hover:bg-green-50/30 text-gray-600"}`}
+                  className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${department === "store" ? "border-purple-600 bg-purple-50 shadow-sm text-purple-800 font-bold" : "border-gray-200 hover:border-purple-300 hover:bg-purple-50/30 text-gray-600"}`}
                 >
                   <input
                     type="radio"
                     name="department"
-                    value="aywa"
-                    checked={department === "aywa"}
-                    onChange={() => setDepartment("aywa")}
-                    className="w-5 h-5 accent-green-600"
+                    value="store"
+                    checked={department === "store"}
+                    onChange={() => setDepartment("store")}
+                    className="w-5 h-5 accent-purple-600"
                   />
-                  <span>أيوا نزيل</span>
+                  <span>نزيل ستور</span>
                 </label>
 
                 <label
-                  className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${department === "sabl" ? "border-green-600 bg-green-50 shadow-sm text-green-800 font-bold" : "border-gray-200 hover:border-green-300 hover:bg-green-50/30 text-gray-600"}`}
+                  className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${department === "sabl" ? "border-purple-600 bg-purple-50 shadow-sm text-purple-800 font-bold" : "border-gray-200 hover:border-purple-300 hover:bg-purple-50/30 text-gray-600"}`}
                 >
                   <input
                     type="radio"
@@ -130,23 +131,23 @@ export default function UnifiedRefundPage() {
                     value="sabl"
                     checked={department === "sabl"}
                     onChange={() => setDepartment("sabl")}
-                    className="w-5 h-5 accent-green-600"
+                    className="w-5 h-5 accent-purple-600"
                   />
                   <span>شركة الشحن سبل</span>
                 </label>
               </div>
             </div>
 
-            {/* 🟦 حقول "أيوا نزيل" */}
-            {department === "aywa" && (
+            {/* 🟪 حقول "نزيل ستور" */}
+            {department === "store" && (
               <div className="space-y-5 animate-in slide-in-from-top-4 fade-in duration-300">
                 <div>
-                  <label className="block mb-2 text-sm font-bold text-green-900">
+                  <label className="block mb-2 text-sm font-bold text-purple-900">
                     نوع الإجراء
                   </label>
                   <select
                     name="actionType"
-                    className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-gray-600"
+                    className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-gray-600"
                     required
                   >
                     <option value="">اختر نوع الإجراء</option>
@@ -156,23 +157,23 @@ export default function UnifiedRefundPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-2 text-sm font-bold text-green-900">
+                  <label className="block mb-2 text-sm font-bold text-purple-900">
                     رقم الطلب
                   </label>
                   <input
                     name="orderNumber"
                     type="text"
-                    className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                    className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                     placeholder="أدخل رقم الطلب"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block mb-3 text-sm font-bold text-green-900">
+                  <label className="block mb-3 text-sm font-bold text-purple-900">
                     نوع التواصل
                   </label>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <label className="flex items-center justify-center gap-2 p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-green-300 hover:bg-green-50/30 transition-all has-[:checked]:border-green-600 has-[:checked]:bg-green-50 has-[:checked]:text-green-800 has-[:checked]:font-bold text-gray-600">
+                    <label className="flex items-center justify-center gap-2 p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-purple-300 hover:bg-purple-50/30 transition-all has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-800 has-[:checked]:font-bold text-gray-600">
                       <input
                         type="radio"
                         name="contactType"
@@ -182,7 +183,7 @@ export default function UnifiedRefundPage() {
                       />
                       <span>واتساب</span>
                     </label>
-                    <label className="flex items-center justify-center gap-2 p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-green-300 hover:bg-green-50/30 transition-all has-[:checked]:border-green-600 has-[:checked]:bg-green-50 has-[:checked]:text-green-800 has-[:checked]:font-bold text-gray-600">
+                    <label className="flex items-center justify-center gap-2 p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-purple-300 hover:bg-purple-50/30 transition-all has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-800 has-[:checked]:font-bold text-gray-600">
                       <input
                         type="radio"
                         name="contactType"
@@ -201,12 +202,12 @@ export default function UnifiedRefundPage() {
             {department === "sabl" && (
               <div className="space-y-5 animate-in slide-in-from-top-4 fade-in duration-300">
                 <div>
-                  <label className="block mb-2 text-sm font-bold text-green-900">
+                  <label className="block mb-2 text-sm font-bold text-purple-900">
                     نوع المشكلة
                   </label>
                   <select
                     name="issueType"
-                    className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-gray-600"
+                    className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-gray-600"
                     required
                   >
                     <option value="">اختر نوع المشكلة</option>
@@ -218,67 +219,67 @@ export default function UnifiedRefundPage() {
                   </select>
                 </div>
 
-                <div className="bg-green-50/30 p-5 rounded-2xl border border-green-100 space-y-4">
-                  <h3 className="font-bold text-green-900 text-sm mb-3">
+                <div className="bg-purple-50/30 p-5 rounded-2xl border border-purple-100 space-y-4">
+                  <h3 className="font-bold text-purple-900 text-sm mb-3">
                     بيانات النزيل
                   </h3>
                   <div>
-                    <label className="block mb-1.5 text-xs font-bold text-green-800">
+                    <label className="block mb-1.5 text-xs font-bold text-purple-800">
                       الاسم الرباعي
                     </label>
                     <input
                       name="inmateName"
                       type="text"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                       placeholder="الاسم الكامل"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-xs font-bold text-green-800">
+                    <label className="block mb-1.5 text-xs font-bold text-purple-800">
                       رقم الهوية
                     </label>
                     <input
                       name="inmateId"
                       type="text"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                       placeholder="رقم الهوية"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-xs font-bold text-green-800">
+                    <label className="block mb-1.5 text-xs font-bold text-purple-800">
                       السجن
                     </label>
                     <input
                       name="prisonName"
                       type="text"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                       placeholder="اسم السجن"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="bg-green-50/30 p-5 rounded-2xl border border-green-100 space-y-4">
-                  <h3 className="font-bold text-green-900 text-sm mb-3">
+                <div className="bg-purple-50/30 p-5 rounded-2xl border border-purple-100 space-y-4">
+                  <h3 className="font-bold text-purple-900 text-sm mb-3">
                     البيانات البنكية
                   </h3>
                   <div>
-                    <label className="block mb-1.5 text-xs font-bold text-green-800">
+                    <label className="block mb-1.5 text-xs font-bold text-purple-800">
                       رقم الحساب (IBAN)
                     </label>
                     <input
                       name="iban"
                       type="text"
                       dir="ltr"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-left"
+                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-left"
                       placeholder="SAXXXXXXXXXXXXXXXXXX"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-xs font-bold text-green-800">
+                    <label className="block mb-1.5 text-xs font-bold text-purple-800">
                       آخر 4 أرقام
                     </label>
                     <input
@@ -286,19 +287,19 @@ export default function UnifiedRefundPage() {
                       type="text"
                       maxLength={4}
                       dir="ltr"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm text-center tracking-widest"
+                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm text-center tracking-widest"
                       placeholder="XXXX"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-xs font-bold text-green-800">
+                    <label className="block mb-1.5 text-xs font-bold text-purple-800">
                       اسم صاحب الحساب
                     </label>
                     <input
                       name="accountName"
                       type="text"
-                      className="w-full p-3 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all text-sm"
+                      className="w-full p-3 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
                       placeholder="الاسم الكامل"
                       required
                     />
@@ -306,13 +307,13 @@ export default function UnifiedRefundPage() {
                 </div>
 
                 <div>
-                  <label className="block mb-2 text-sm font-bold text-green-900">
+                  <label className="block mb-2 text-sm font-bold text-purple-900">
                     إرفاق البلاغ
                   </label>
                   <input
                     type="file"
                     name="file"
-                    className="w-full p-2 border-2 border-dashed border-green-200 rounded-xl bg-green-50/30 focus:outline-none focus:border-green-500 transition-all file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200 file:cursor-pointer file:font-bold text-sm text-gray-600"
+                    className="w-full p-2 border-2 border-dashed border-purple-200 rounded-xl bg-purple-50/30 focus:outline-none focus:border-purple-500 transition-all file:ml-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 file:cursor-pointer file:font-bold text-sm text-gray-600"
                     required
                   />
                 </div>
@@ -321,13 +322,13 @@ export default function UnifiedRefundPage() {
 
             {/* 👈 الحقل المشترك الدائم: تفاصيل الطلب */}
             <div className="pt-2 animate-in fade-in duration-500">
-              <label className="block mb-2 text-sm font-bold text-green-900">
+              <label className="block mb-2 text-sm font-bold text-purple-900">
                 تفاصيل الطلب / الملاحظات
               </label>
               <textarea
                 name="orderDetails"
                 rows={4}
-                className="w-full p-3.5 border border-green-100 rounded-xl bg-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 resize-none transition-all text-sm"
+                className="w-full p-3.5 border border-purple-100 rounded-xl bg-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition-all text-sm"
                 placeholder="أدخل تفاصيل الطلب أو أي ملاحظات إضافية..."
                 required
               ></textarea>
@@ -337,7 +338,7 @@ export default function UnifiedRefundPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full bg-gradient-to-r from-green-800 via-emerald-700 to-green-700 hover:from-green-900 hover:via-green-800 hover:to-emerald-800 text-white py-4 rounded-2xl transition-all shadow-lg shadow-green-900/20 active:scale-[0.98] flex items-center justify-center gap-2 font-bold disabled:opacity-70 group mt-4"
+              className="w-full bg-gradient-to-r from-purple-700 via-fuchsia-600 to-purple-600 hover:from-purple-800 hover:via-fuchsia-700 hover:to-purple-700 text-white py-4 rounded-2xl transition-all shadow-lg shadow-purple-900/20 active:scale-[0.98] flex items-center justify-center gap-2 font-bold disabled:opacity-70 group mt-4"
             >
               {isPending ? (
                 <>
