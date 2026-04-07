@@ -8,6 +8,7 @@ export async function submitUnifiedRefundAction(formData: FormData) {
   try {
     const department = formData.get('department') as string
     const employeeName = formData.get('employeeName') as string
+    const orderDetails = formData.get('orderDetails') as string // 👈 سحبنا التفاصيل لتكون متاحة للجهتين
 
     let targetEmail = ''
     let subject = ''
@@ -21,7 +22,6 @@ export async function submitUnifiedRefundAction(formData: FormData) {
       const actionType = formData.get('actionType') as string
       const orderNumber = formData.get('orderNumber') as string
       const contactType = formData.get('contactType') as string
-      const orderDetails = formData.get('orderDetails') as string
 
       subject = `نموذج استرجاع (أيوا نزيل) - طلب رقم ${orderNumber}`
       htmlContent = `
@@ -46,7 +46,7 @@ export async function submitUnifiedRefundAction(formData: FormData) {
     // 2. معالجة طلب "شركة الشحن سبل"
     // ==========================================
     else if (department === 'sabl') {
-      targetEmail = 'info@aywanazeel.com' // ضع الإيميل الصحيح هنا
+      targetEmail = 'info@aywanazeel.com' 
       const issueType = formData.get('issueType') as string
       const inmateName = formData.get('inmateName') as string
       const inmateId = formData.get('inmateId') as string
@@ -74,20 +74,24 @@ export async function submitUnifiedRefundAction(formData: FormData) {
             <div style="padding: 24px;">
               <p><strong>الموظف مقدم الطلب:</strong> ${employeeName}</p>
               <p><strong>نوع المشكلة:</strong> <span style="color: #dc2626; font-weight: bold;">${issueType}</span></p>
+              
               <h3 style="border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: #1e40af;">👤 بيانات النزيل</h3>
               <p><strong>الاسم الرباعي:</strong> ${inmateName}</p>
               <p><strong>رقم الهوية:</strong> ${inmateId}</p>
               <p><strong>اسم السجن:</strong> ${prisonName}</p>
+              
               <h3 style="border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: #1e40af; margin-top: 20px;">🏦 البيانات البنكية</h3>
               <p><strong>اسم صاحب الحساب:</strong> ${accountName}</p>
               <p><strong>الآيبان (IBAN):</strong> <span dir="ltr">${iban}</span></p>
               <p><strong>آخر 4 أرقام:</strong> <span dir="ltr">${last4Digits}</span></p>
+
+              <h3 style="border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: #1e40af; margin-top: 20px;">📝 تفاصيل الطلب / ملاحظات:</h3>
+              <p style="background: #f1f5f9; padding: 15px; border-radius: 8px; white-space: pre-wrap;">${orderDetails}</p>
             </div>
           </div>
         </div>
       `
 
-      // إرسال إيميل سبل مع المرفقات
       await resend.emails.send({
         from: 'Refund System <aywa@aywasystem.online>',
         to: targetEmail,
@@ -101,7 +105,6 @@ export async function submitUnifiedRefundAction(formData: FormData) {
       return { error: 'جهة غير صالحة' }
     }
 
-    // إرسال إيميل أيوا نزيل (لأنه لا يحتاج مرفقات في هذا التصميم)
     if (department === 'aywa') {
       await resend.emails.send({
         from: 'Refund System <aywa@aywasystem.online>',
