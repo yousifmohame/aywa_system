@@ -105,6 +105,9 @@ export async function submitComplaintAction(formData: FormData) {
       },
     });
 
+    revalidatePath('/dashboard/complaints');
+    revalidatePath('/dashboard/my-complaints');
+
     return { success: true };
   } catch (error) {
     console.error("CRITICAL ERROR SUBMITTING COMPLAINT:", error);
