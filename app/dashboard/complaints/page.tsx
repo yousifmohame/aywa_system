@@ -1,30 +1,22 @@
+// app/dashboard/complaints/page.tsx
 import { getAllComplaintsAction } from '@/app/actions/complaints'
 import { prisma } from '@/app/lib/prisma'
-import { FileText, Search, CircleAlert, User, Wrench, ChevronRight, ChevronLeft } from 'lucide-react'
-import AssignButton from './AssignButton'
-import Link from 'next/link'
+import { FileText, Search, CircleAlert } from 'lucide-react'
+import ComplaintsList from './ComplaintsList' // استيراد المكون الجديد
 
-export default async function ComplaintsPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
-  // 1. تحديد رقم الصفحة الحالية من الرابط (الافتراضي 1)
-  const currentPage = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1
-  const limit = 50 // عدد الشكاوى في كل صفحة
-
-  // 2. جلب البيانات من الخادم مع التمرير
-  const res = await getAllComplaintsAction(currentPage, limit)
+export default async function ComplaintsPage() {
+  // 1. جلب أول 50 شكوى (الصفحة الأولى) لتهيئة الصفحة بسرعة
+  const res = await getAllComplaintsAction(1, 50)
   const complaints = res.data || []
-  const metadata = res.metadata || { total: 0, page: 1, totalPages: 1, hasNextPage: false, hasPrevPage: false }
+  const metadata = res.metadata || { total: 0, page: 1, totalPages: 1 }
 
-  // 3. جلب الموظفين
+  // 2. جلب الموظفين للإسناد
   const employees = await prisma.user.findMany({
     where: { role: 'EMPLOYEE' },
     select: { id: true, fullName: true }
   })
 
-  // 4. جلب الإحصائيات الكلية (لأننا الآن نجلب 50 شكوى فقط فلا يمكننا حساب الإحصائيات من المصفوفة)
+  // 3. جلب الإحصائيات الكلية من قاعدة البيانات بسرعة
   const [newCount, solvedCount, closedCount] = await Promise.all([
     prisma.complaint.count({ where: { status: 'PENDING' } }),
     prisma.complaint.count({ where: { status: 'SOLVED' } }),
@@ -35,20 +27,7 @@ export default async function ComplaintsPage({
     new: newCount,
     solved: solvedCount,
     closed: closedCount,
-    total: metadata.total // الإجمالي من الـ metadata
-  }
-
-  // ألوان ونصوص الحالة
-  const statusColors: any = {
-    'PENDING': 'bg-blue-100 text-blue-700 border-blue-200',
-    'SOLVED': 'bg-green-100 text-green-700 border-green-200',
-    'CLOSED': 'bg-gray-100 text-gray-700 border-gray-200',
-  }
-
-  const statusText: any = {
-    'PENDING': 'جديد / قيد المعالجة',
-    'SOLVED': 'تم الحل',
-    'CLOSED': 'مغلق',
+    total: metadata.total 
   }
 
   return (
@@ -87,176 +66,12 @@ export default async function ComplaintsPage({
           </div>
         </div>
 
-        {/* === Content Area === */}
-        {complaints.length === 0 ? (
-           <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
-             <p className="text-gray-400 font-medium">لا توجد شكاوى حالياً</p>
-           </div>
-        ) : (
-          <>
-            {/* 1. عرض الجوال (Mobile View) */}
-            <div className="grid grid-cols-1 gap-4 md:hidden">
-              {complaints.map((c) => (
-                <div key={c.id} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-4">
-                  
-                  {/* Card Header */}
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-xs text-gray-400 font-medium block mb-1">رقم البلاغ</span>
-                      <span className="text-base font-bold text-blue-600 font-mono">#{c.orderNumber || '---'}</span>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${statusColors[c.status] || 'bg-gray-100'}`}>
-                      {statusText[c.status]}
-                    </span>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="space-y-3 pt-3 border-t border-dashed border-gray-100">
-                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                      <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
-                        <User size={16} />
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-gray-400 block">العميل</span>
-                        <span className="font-bold">{c.clientName}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                      <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
-                        <Wrench size={16} />
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-gray-400 block">الخدمة</span>
-                        <span className="font-medium">{c.serviceType}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card Footer */}
-                  <div className="pt-3 border-t border-gray-100 flex items-center justify-between mt-auto">
-                     <div>
-                        {c.assignedTo ? (
-                           <div className="flex items-center gap-1.5 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100">
-                              <span className="text-[10px] text-indigo-400">مسند لـ:</span>
-                              <span className="text-xs font-bold text-indigo-700">{c.assignedTo.fullName}</span>
-                           </div>
-                        ) : (
-                           <span className="text-[10px] text-gray-400 bg-gray-50 px-2 py-1 rounded">غير مسند</span>
-                        )}
-                     </div>
-                     
-                     <div>
-                        <AssignButton complaint={c} employees={employees} />
-                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* 2. عرض سطح المكتب (Desktop View) */}
-            <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50/50 border-b border-gray-100">
-                    <tr>
-                      <th className="px-6 py-4 text-right font-bold text-gray-600 text-xs uppercase tracking-wider">رقم البلاغ</th>
-                      <th className="px-6 py-4 text-right font-bold text-gray-600 text-xs uppercase tracking-wider">العميل</th>
-                      <th className="px-6 py-4 text-right font-bold text-gray-600 text-xs uppercase tracking-wider">الخدمة</th>
-                      <th className="px-6 py-4 text-right font-bold text-gray-600 text-xs uppercase tracking-wider">الحالة</th>
-                      <th className="px-6 py-4 text-right font-bold text-gray-600 text-xs uppercase tracking-wider">المسند إليه</th>
-                      <th className="px-6 py-4 text-center font-bold text-gray-600 text-xs uppercase tracking-wider">الإجراء</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {complaints.map((c) => (
-                      <tr key={c.id} className="hover:bg-blue-50/30 transition-colors group">
-                        <td className="px-6 py-4 font-bold text-blue-600 font-mono">#{c.orderNumber || '---'}</td>
-                        <td className="px-6 py-4 font-medium text-gray-800">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
-                              <User size={12} />
-                            </div>
-                            {c.clientName}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-gray-600">{c.serviceType}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusColors[c.status] || 'bg-gray-100'}`}>
-                            {statusText[c.status]}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                           {c.assignedTo ? (
-                               <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 inline-block">
-                                 {c.assignedTo.fullName}
-                               </span>
-                           ) : (
-                               <span className="text-gray-400 text-[10px] italic">-- غير مسند --</span>
-                           )}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                           <AssignButton complaint={c} employees={employees} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* 3. Pagination Controls (أزرار التنقل) */}
-            {metadata.totalPages > 1 && (
-              <div className="flex items-center justify-between bg-white px-4 py-3 border border-gray-100 rounded-xl shadow-sm mt-4">
-                <div className="flex flex-1 justify-between sm:hidden">
-                  <Link
-                    href={`/dashboard/complaints?page=${metadata.page - 1}`}
-                    className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 ${!metadata.hasPrevPage && 'pointer-events-none opacity-50'}`}
-                  >
-                    السابق
-                  </Link>
-                  <Link
-                    href={`/dashboard/complaints?page=${metadata.page + 1}`}
-                    className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 ${!metadata.hasNextPage && 'pointer-events-none opacity-50'}`}
-                  >
-                    التالي
-                  </Link>
-                </div>
-                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      إظهار الصفحة <span className="font-bold">{metadata.page}</span> من <span className="font-bold">{metadata.totalPages}</span>
-                    </p>
-                  </div>
-                  <div>
-                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                      <Link
-                        href={`/dashboard/complaints?page=${metadata.page + 1}`}
-                        className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!metadata.hasNextPage && 'pointer-events-none opacity-50'}`}
-                      >
-                        <span className="sr-only">التالي</span>
-                        <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                      </Link>
-                      
-                      {/* Current Page Indicator */}
-                      <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
-                        {metadata.page}
-                      </span>
-
-                      <Link
-                        href={`/dashboard/complaints?page=${metadata.page - 1}`}
-                        className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!metadata.hasPrevPage && 'pointer-events-none opacity-50'}`}
-                      >
-                        <span className="sr-only">السابق</span>
-                        <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                      </Link>
-                    </nav>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+        {/* === Content Area (Infinite Scroll) === */}
+        <ComplaintsList 
+          initialComplaints={complaints} 
+          employees={employees} 
+          totalPages={metadata.totalPages}
+        />
 
         {/* Note Footer */}
         <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 flex items-start gap-3">
