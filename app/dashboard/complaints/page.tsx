@@ -1,25 +1,41 @@
 import { getAllComplaintsAction } from '@/app/actions/complaints'
 import { prisma } from '@/app/lib/prisma'
-import { FileText, Search, CircleAlert, User, Wrench } from 'lucide-react'
+import { FileText, Search, CircleAlert, User, Wrench, ChevronRight, ChevronLeft } from 'lucide-react'
 import AssignButton from './AssignButton'
+import Link from 'next/link'
 
-export default async function ComplaintsPage() {
-  // 1. جلب البيانات
-  const res = await getAllComplaintsAction()
+export default async function ComplaintsPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
+  // 1. تحديد رقم الصفحة الحالية من الرابط (الافتراضي 1)
+  const currentPage = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1
+  const limit = 50 // عدد الشكاوى في كل صفحة
+
+  // 2. جلب البيانات من الخادم مع التمرير
+  const res = await getAllComplaintsAction(currentPage, limit)
   const complaints = res.data || []
+  const metadata = res.metadata || { total: 0, page: 1, totalPages: 1, hasNextPage: false, hasPrevPage: false }
 
-  // 2. جلب الموظفين
+  // 3. جلب الموظفين
   const employees = await prisma.user.findMany({
     where: { role: 'EMPLOYEE' },
     select: { id: true, fullName: true }
   })
 
-  // 3. الإحصائيات
+  // 4. جلب الإحصائيات الكلية (لأننا الآن نجلب 50 شكوى فقط فلا يمكننا حساب الإحصائيات من المصفوفة)
+  const [newCount, solvedCount, closedCount] = await Promise.all([
+    prisma.complaint.count({ where: { status: 'PENDING' } }),
+    prisma.complaint.count({ where: { status: 'SOLVED' } }),
+    prisma.complaint.count({ where: { status: 'CLOSED' } })
+  ])
+
   const stats = {
-    new: complaints.filter(c => c.status === 'PENDING').length,
-    solved: complaints.filter(c => c.status === 'SOLVED').length,
-    closed: complaints.filter(c => c.status === 'CLOSED').length,
-    total: complaints.length
+    new: newCount,
+    solved: solvedCount,
+    closed: closedCount,
+    total: metadata.total // الإجمالي من الـ metadata
   }
 
   // ألوان ونصوص الحالة
@@ -78,14 +94,12 @@ export default async function ComplaintsPage() {
            </div>
         ) : (
           <>
-            {/* 1. عرض الجوال (Mobile View) - Cards 
-                يظهر فقط في الشاشات الصغيرة (md:hidden)
-            */}
+            {/* 1. عرض الجوال (Mobile View) */}
             <div className="grid grid-cols-1 gap-4 md:hidden">
               {complaints.map((c) => (
                 <div key={c.id} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-4">
                   
-                  {/* Card Header: Order # & Status */}
+                  {/* Card Header */}
                   <div className="flex justify-between items-start">
                     <div>
                       <span className="text-xs text-gray-400 font-medium block mb-1">رقم البلاغ</span>
@@ -96,7 +110,7 @@ export default async function ComplaintsPage() {
                     </span>
                   </div>
 
-                  {/* Card Body: Details */}
+                  {/* Card Body */}
                   <div className="space-y-3 pt-3 border-t border-dashed border-gray-100">
                     <div className="flex items-center gap-3 text-sm text-gray-700">
                       <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
@@ -119,7 +133,7 @@ export default async function ComplaintsPage() {
                     </div>
                   </div>
 
-                  {/* Card Footer: Assign & Actions */}
+                  {/* Card Footer */}
                   <div className="pt-3 border-t border-gray-100 flex items-center justify-between mt-auto">
                      <div>
                         {c.assignedTo ? (
@@ -132,7 +146,6 @@ export default async function ComplaintsPage() {
                         )}
                      </div>
                      
-                     {/* زر الإجراءات */}
                      <div>
                         <AssignButton complaint={c} employees={employees} />
                      </div>
@@ -141,9 +154,7 @@ export default async function ComplaintsPage() {
               ))}
             </div>
 
-            {/* 2. عرض سطح المكتب (Desktop View) - Table 
-                يظهر فقط في الشاشات المتوسطة والكبيرة (hidden md:block)
-            */}
+            {/* 2. عرض سطح المكتب (Desktop View) */}
             <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -193,6 +204,57 @@ export default async function ComplaintsPage() {
                 </table>
               </div>
             </div>
+
+            {/* 3. Pagination Controls (أزرار التنقل) */}
+            {metadata.totalPages > 1 && (
+              <div className="flex items-center justify-between bg-white px-4 py-3 border border-gray-100 rounded-xl shadow-sm mt-4">
+                <div className="flex flex-1 justify-between sm:hidden">
+                  <Link
+                    href={`/dashboard/complaints?page=${metadata.page - 1}`}
+                    className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 ${!metadata.hasPrevPage && 'pointer-events-none opacity-50'}`}
+                  >
+                    السابق
+                  </Link>
+                  <Link
+                    href={`/dashboard/complaints?page=${metadata.page + 1}`}
+                    className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 ${!metadata.hasNextPage && 'pointer-events-none opacity-50'}`}
+                  >
+                    التالي
+                  </Link>
+                </div>
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      إظهار الصفحة <span className="font-bold">{metadata.page}</span> من <span className="font-bold">{metadata.totalPages}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                      <Link
+                        href={`/dashboard/complaints?page=${metadata.page + 1}`}
+                        className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!metadata.hasNextPage && 'pointer-events-none opacity-50'}`}
+                      >
+                        <span className="sr-only">التالي</span>
+                        <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                      </Link>
+                      
+                      {/* Current Page Indicator */}
+                      <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
+                        {metadata.page}
+                      </span>
+
+                      <Link
+                        href={`/dashboard/complaints?page=${metadata.page - 1}`}
+                        className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!metadata.hasPrevPage && 'pointer-events-none opacity-50'}`}
+                      >
+                        <span className="sr-only">السابق</span>
+                        <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                      </Link>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
 
